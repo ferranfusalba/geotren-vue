@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Panel from "../views/Panel.vue";
-import Geotren from "../views/Geotren.vue";
+// import Geotren from "../views/Geotren.vue";
 
-const routes = [
+const routes = [ /*
   {
     path: "/",
     name: "Geotren",
     component: Geotren,
-  },
+  }, */
   {
-    path: "/panel",
+    path: "/",
     name: "Panel",
     component: Panel,
   },
