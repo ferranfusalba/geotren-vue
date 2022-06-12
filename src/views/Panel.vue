@@ -123,11 +123,8 @@ export default {
   },
   mounted() {
     this.$store.dispatch("getTrains");
-    // this.filterQC(this.$store.state.trains.records);
-    // console.log(this.$store.state.trains.records[0].fields.properes_parades);
   },
   updated() {
-    // console.log(this.$store.state.trains.records);
     this.filterQC(this.$store.state.trains.records);
     this.filterNextStation(this.$store.state.trains.records);
   },
