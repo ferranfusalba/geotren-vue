@@ -1,4 +1,4 @@
-# pwa-geotren
+# geotren-vue
 
 ## Project setup
 ```
