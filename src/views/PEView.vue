@@ -18,7 +18,7 @@
       </tr>
     </table>
     <picture>
-        <embed type="image/jpg" src="https://geotren.fgc.cat/isic/pe" width="100%">
+        <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%">
     </picture>
     <EasyDataTable :headers="headers" :items="getScheduleTable" :sort-by="sortBy" :sort-type="sortType"/>
     <br>
