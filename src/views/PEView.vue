@@ -9,14 +9,15 @@
         <th>Est.</th>
         <th>UT</th>
       </tr>
-      <tr v-for="user in getUsers" :key="user['id']">
-        <td>{{ user['fields']['lin'] }}</td>
-        <td>{{ user['fields']['desti'] }}</td>
-        <td>{{ user['fields']['dir'] }}</td>
-        <td>{{ user['fields']['estacionat_a'] }}</td>
-        <td>{{ user['fields']['tipus_unitat'] }}</td>
+      <tr v-for="item in getRealTime" :key="item['id']">
+        <td>{{ item['fields']['lin'] }}</td>
+        <td>{{ item['fields']['desti'] }}</td>
+        <td>{{ item['fields']['dir'] }}</td>
+        <td>{{ item['fields']['estacionat_a'] }}</td>
+        <td>{{ item['fields']['tipus_unitat'] }}</td>
       </tr>
     </table>
+    <EasyDataTable :headers="headers" :items="getScheduleTable" :sort-by="sortBy" :sort-type="sortType"/>
     <table>
       <tr>
         <!-- <th>date</th> -->
@@ -40,21 +41,36 @@
 
 <script setup lang="ts">
 import { onMounted, computed } from "vue";
-import { useUserStore } from "../stores/users";
+import { useRealTimeStore } from "../stores/users";
 import { useScheduleStore } from "../stores/schedule";
 
-const store = useUserStore();
-const getUsers = computed(() => {
-  return store.getUsers;
+import type { Header, SortType } from "vue3-easy-data-table";
+
+const sortBy = "departure_time";
+const sortType: SortType = "asc";
+
+const headers: Header[] = [
+  { text: "Departure", value: "departure_time", sortable: true },
+  { text: "Route", value: "route_short_name"},
+  { text: "Headsign", value: "trip_headsign"},
+];
+
+const realTimestore = useRealTimeStore();
+const getRealTime = computed(() => {
+  return realTimestore.getRealTime;
 });
 
 const scheduleStore = useScheduleStore();
 const getSchedule = computed(() => {
   return scheduleStore.getSchedule;
 });
+const getScheduleTable = computed(() => {
+  return scheduleStore.getScheduleTable;
+});
 
 onMounted(() => {
-  store.fetchUsers();
+  realTimestore.fetchRealTime();
   scheduleStore.fetchSchedule();
 });
+
 </script>
