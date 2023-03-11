@@ -18,24 +18,8 @@
       </tr>
     </table>
     <EasyDataTable :headers="headers" :items="getScheduleTable" :sort-by="sortBy" :sort-type="sortType"/>
-    <table>
-      <tr>
-        <!-- <th>date</th> -->
-        <th>departure</th>
-        <!-- <th>arrival</th> -->
-        <th>route</th>
-        <!-- <th>col</th> -->
-        <th>trip_headsign</th>
-      </tr>
-      <tr v-for="item in getSchedule" :key="item['id']">
-        <!-- <td>{{ item['fields']['date'] }}</td> -->
-        <td>{{ item['fields']['departure_time'] }}</td>
-        <!-- <td>{{ item['fields']['arrival_time'] }}</td> -->
-        <td>{{ item['fields']['route_short_name'] }}</td>
-        <!-- <td>{{ item['fields']['route_color'] }}</td> -->
-        <td>{{ item['fields']['trip_headsign'] }}</td>
-      </tr>
-    </table>
+    <br>
+    <br>
   </main>
 </template>
 
@@ -61,9 +45,6 @@ const getRealTime = computed(() => {
 });
 
 const scheduleStore = useScheduleStore();
-const getSchedule = computed(() => {
-  return scheduleStore.getSchedule;
-});
 const getScheduleTable = computed(() => {
   return scheduleStore.getScheduleTable;
 });
