@@ -18,20 +18,28 @@ import { RouterLink, RouterView } from 'vue-router'
 <style scoped lang="scss">
 :root {
   height: 100vh;
+
   main {
-    height: 95vh;
+    height: calc(100vh - 3.75rem);
   }
-  nav {
-    height: 5vh;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    text-align: center;
-    align-items: center;
-    background-color: yellowgreen;
-    a {
-      text-decoration: none;
-      color: white;
+
+  footer {
+    position: fixed;
+    bottom: 0;
+
+    nav {
+      height: 3.75rem;
+      width: 100vw;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      text-align: center;
+      align-items: center;
+      background-color: yellowgreen;
+
+      a {
+        text-decoration: none;
+        color: white;
+      }
     }
   }
-}
-</style>
+}</style>
