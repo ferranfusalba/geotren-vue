@@ -20,7 +20,7 @@
     <picture>
         <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%">
     </picture>
-    <EasyDataTable :headers="headers" :items="getScheduleTable" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="5"/>
+    <EasyDataTable :headers="headers" :items="getSchedulePETable" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="5"/>
     <br>
     <br>
   </main>
@@ -50,11 +50,11 @@ const getRealTime = computed(() => {
 console.log('getRealTime', getRealTime)
 
 const scheduleStore = useScheduleStore();
-const getScheduleTable = computed(() => {
-  return scheduleStore.getScheduleTable;
+const getSchedulePETable = computed(() => {
+  return scheduleStore.getSchedulePETable;
 });
 
-console.log('getScheduleTable', getScheduleTable)
+console.log('getSchedulePETable', getSchedulePETable)
 
 // TODO: Integrate time filtering & printed real time
 var today = new Date();
