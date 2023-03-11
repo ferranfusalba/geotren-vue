@@ -27,10 +27,12 @@
 </template>
 
 <script setup lang="ts">
+// Vue
 import { onMounted, computed } from "vue";
+// Pinia Store
 import { useRealTimeStore } from "../stores/realtime";
 import { useScheduleStore } from "../stores/schedule";
-
+// Table
 import type { Header, SortType } from "vue3-easy-data-table";
 
 const sortBy = "departure_time";
@@ -46,25 +48,22 @@ const realTimestore = useRealTimeStore();
 const getRealTime = computed(() => {
   return realTimestore.getRealTime;
 });
-
 console.log('getRealTime', getRealTime)
 
 const scheduleStore = useScheduleStore();
 const getSchedulePETable = computed(() => {
   return scheduleStore.getSchedulePETable;
 });
+console.log('getSchedulePETable', getSchedulePETable);
 
-console.log('getSchedulePETable', getSchedulePETable)
-
-// TODO: Integrate time filtering & printed real time
+// TODO: Get two digit seconds, Integrate time filtering on table (delete past trains), print real time, get next train (countdown)
 var today = new Date();
 var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-
 console.log('time', time);
 
 onMounted(() => {
   realTimestore.fetchRealTime();
-  scheduleStore.fetchSchedule();
+  scheduleStore.fetchSchedulePE();
 });
 
 </script>
