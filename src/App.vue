@@ -20,7 +20,7 @@ import { RouterLink, RouterView } from 'vue-router'
   height: 100vh;
 
   main {
-    height: calc(100vh - 3.75rem);
+    height: calc(100vh - 3rem);
   }
 
   footer {
@@ -28,7 +28,7 @@ import { RouterLink, RouterView } from 'vue-router'
     bottom: 0;
 
     nav {
-      height: 3.75rem;
+      height: 3rem;
       width: 100vw;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
