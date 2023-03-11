@@ -19,10 +19,10 @@ import { RouterLink, RouterView } from 'vue-router'
 :root {
   height: 100vh;
   main {
-    height: 90vh;
+    height: 95vh;
   }
   nav {
-    height: 10vh;
+    height: 5vh;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     text-align: center;
