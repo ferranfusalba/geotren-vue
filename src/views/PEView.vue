@@ -1,13 +1,22 @@
 <template>
   <main>
-    <h1>Made By Getters</h1>
-    <div v-for="user in getUsers" :key="user['id']">
-      {{ user['id'] }} {{ user['name'] }} {{ user['address'] }}
-    </div>
-    <h1>Made By Actions</h1>
-    <div v-for="user in users" :key="user['id']">
-      {{ user['id'] }} {{ user['name'] }} {{ user['address'] }}
-    </div>
+    <h2>Origin PE</h2>
+    <table>
+      <tr>
+        <th>Line</th>
+        <th>Dest.</th>
+        <th>Dir.</th>
+        <th>Est.</th>
+        <th>UT</th>
+      </tr>
+      <tr v-for="user in getUsers" :key="user['id']">
+        <td>{{ user['fields']['lin'] }}</td>
+        <td>{{ user['fields']['desti'] }}</td>
+        <td>{{ user['fields']['dir'] }}</td>
+        <td>{{ user['fields']['estacionat_a'] }}</td>
+        <td>{{ user['fields']['tipus_unitat'] }}</td>
+      </tr>
+    </table>
   </main>
 </template>
 
@@ -18,9 +27,6 @@ import { useUserStore } from "../stores/users";
 const store = useUserStore();
 const getUsers = computed(() => {
   return store.getUsers;
-});
-const users = computed(() => {
-  return store.users;
 });
 
 onMounted(() => {
