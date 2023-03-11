@@ -20,7 +20,7 @@
     <picture>
         <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%">
     </picture>
-    <EasyDataTable :headers="headers" :items="getScheduleTable" :sort-by="sortBy" :sort-type="sortType"/>
+    <EasyDataTable :headers="headers" :items="getScheduleTable" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="5"/>
     <br>
     <br>
   </main>
@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import { onMounted, computed } from "vue";
-import { useRealTimeStore } from "../stores/users";
+import { useRealTimeStore } from "../stores/realtime";
 import { useScheduleStore } from "../stores/schedule";
 
 import type { Header, SortType } from "vue3-easy-data-table";
