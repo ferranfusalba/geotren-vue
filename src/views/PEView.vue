@@ -17,6 +17,9 @@
         <td>{{ item['fields']['tipus_unitat'] }}</td>
       </tr>
     </table>
+    <picture>
+        <embed type="image/jpg" src="https://geotren.fgc.cat/isic/pe" width="100%">
+    </picture>
     <EasyDataTable :headers="headers" :items="getScheduleTable" :sort-by="sortBy" :sort-type="sortType"/>
     <br>
     <br>
@@ -44,10 +47,20 @@ const getRealTime = computed(() => {
   return realTimestore.getRealTime;
 });
 
+console.log('getRealTime', getRealTime)
+
 const scheduleStore = useScheduleStore();
 const getScheduleTable = computed(() => {
   return scheduleStore.getScheduleTable;
 });
+
+console.log('getScheduleTable', getScheduleTable)
+
+// TODO: Integrate time filtering & printed real time
+var today = new Date();
+var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+
+console.log('time', time);
 
 onMounted(() => {
   realTimestore.fetchRealTime();
