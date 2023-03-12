@@ -2,7 +2,7 @@
   <main>
     <h2>Origin MC</h2>
     <EasyDataTable :headers="headers" :items="getScheduleMCTable" :sort-by="sortBy" :sort-type="sortType"
-      :rows-per-page="10" table-class-name="customize-table" />
+      :rows-per-page="10"/>
   </main>
 </template>
 
