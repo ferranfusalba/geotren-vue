@@ -20,7 +20,7 @@
     <picture>
         <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%">
     </picture>
-    <EasyDataTable :headers="headers" :items="getSchedulePETable" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="5"/>
+    <EasyDataTable :headers="headers" :items="getSchedulePETable" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="5" table-class-name="customize-table"/>
     <br>
     <br>
   </main>

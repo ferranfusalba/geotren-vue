@@ -1,7 +1,8 @@
 <template>
   <main>
     <h2>Origin MC</h2>
-    <EasyDataTable :headers="headers" :items="getScheduleMCTable" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="10"/>
+    <EasyDataTable :headers="headers" :items="getScheduleMCTable" :sort-by="sortBy" :sort-type="sortType"
+      :rows-per-page="10" table-class-name="customize-table" />
   </main>
 </template>
 
@@ -18,8 +19,8 @@ const sortType: SortType = "asc";
 
 const headers: Header[] = [
   { text: "Departure", value: "departure_time", sortable: true },
-  { text: "Route", value: "route_short_name"},
-  { text: "Headsign", value: "trip_headsign"},
+  { text: "Route", value: "route_short_name" },
+  { text: "Headsign", value: "trip_headsign" },
 ];
 
 const scheduleStore = useScheduleStore();
@@ -31,5 +32,4 @@ console.log('getScheduleMCTable', getScheduleMCTable);
 onMounted(() => {
   scheduleStore.fetchScheduleMC();
 });
-
 </script>
