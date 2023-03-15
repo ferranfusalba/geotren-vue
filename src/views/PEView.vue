@@ -58,7 +58,10 @@ console.log('getSchedulePETable', getSchedulePETable);
 
 // TODO: Get two digit seconds, Integrate time filtering on table (delete past trains), print real time, get next train (countdown)
 var today = new Date();
-var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+var hours = today.getHours() < 10 ? '0' + today.getHours() : today.getHours();
+var minutes = today.getMinutes() < 10 ? '0' + today.getMinutes() : today.getMinutes();
+var seconds = today.getSeconds() < 10 ? '0' + today.getSeconds() : today.getSeconds();
+var time = hours + ":" + minutes + ":" + seconds;
 console.log('time', time);
 
 onMounted(() => {
