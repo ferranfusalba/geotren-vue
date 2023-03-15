@@ -41,7 +41,7 @@ export const useScheduleStore = defineStore("schedule", {
           if (x['departure_time'] > this.time) {
               return x
           }
-        })
+        }).filter(notUndefined => notUndefined !== undefined)
 
         console.log('filteredPETable', this.filteredPETable)
       }
