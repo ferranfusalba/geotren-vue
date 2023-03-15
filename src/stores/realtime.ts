@@ -2,12 +2,12 @@ import { defineStore } from 'pinia'
 import axios from "axios"
 export const useRealTimeStore = defineStore("realTime", {
     state: () => ({
-      realTime: []
+      realTime: [],
     }),
     getters: {
       getRealTime(state){
           return state.realTime
-        }
+      },
     },
     actions: {
       async fetchRealTime() {
@@ -19,6 +19,6 @@ export const useRealTimeStore = defineStore("realTime", {
             alert(error)
             console.log(error)
         }
-      }
+      },
     },
 })

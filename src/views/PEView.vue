@@ -1,6 +1,7 @@
 <template>
   <main>
     <h2>Origin PE</h2>
+    <p>{{getTime}}</p>
     <table>
       <tr>
         <th>Line</th>
@@ -20,7 +21,7 @@
     <picture>
         <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%">
     </picture>
-    <EasyDataTable :headers="headers" :items="getSchedulePETable" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="5" table-class-name="customize-table"/>
+    <EasyDataTable :headers="headers" :items="getFilteredPETable" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="5" table-class-name="customize-table"/>
     <br>
     <br>
   </main>
@@ -49,23 +50,31 @@ const getRealTime = computed(() => {
   return realTimestore.getRealTime;
 });
 console.log('getRealTime', getRealTime)
+const getTime = computed(() => {
+  return scheduleStore.getTime;
+})
+console.log('getTime', getTime);
 
 const scheduleStore = useScheduleStore();
 const getSchedulePETable = computed(() => {
   return scheduleStore.getSchedulePETable;
 });
 console.log('getSchedulePETable', getSchedulePETable);
+const getFilteredPETable = computed(() => {
+  return scheduleStore.getFilteredPETable;
+});
 
 // TODO: Get two digit seconds, Integrate time filtering on table (delete past trains), print real time, get next train (countdown)
-var today = new Date();
-var hours = today.getHours() < 10 ? '0' + today.getHours() : today.getHours();
-var minutes = today.getMinutes() < 10 ? '0' + today.getMinutes() : today.getMinutes();
-var seconds = today.getSeconds() < 10 ? '0' + today.getSeconds() : today.getSeconds();
-var time = hours + ":" + minutes + ":" + seconds;
-console.log('time', time);
+// var today = new Date();
+// var hours = today.getHours() < 10 ? '0' + today.getHours() : today.getHours();
+// var minutes = today.getMinutes() < 10 ? '0' + today.getMinutes() : today.getMinutes();
+// var seconds = today.getSeconds() < 10 ? '0' + today.getSeconds() : today.getSeconds();
+// var time = hours + ":" + minutes + ":" + seconds;
+// console.log('time', time);
 
 onMounted(() => {
   realTimestore.fetchRealTime();
+  scheduleStore.fetchTime();
   scheduleStore.fetchSchedulePE();
 });
 
