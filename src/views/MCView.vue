@@ -25,7 +25,7 @@ const headers: Header[] = [
 
 const scheduleStore = useScheduleStore();
 const getScheduleMCTable = computed(() => {
-  return scheduleStore.getScheduleMCTable;
+  return scheduleStore.getScheduleMCFields;
 });
 
 onMounted(() => {
