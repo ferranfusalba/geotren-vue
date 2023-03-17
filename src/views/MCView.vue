@@ -1,8 +1,9 @@
 <template>
   <main>
     <h2>Origin MC</h2>
-    <EasyDataTable :headers="headers" :items="getScheduleMCTable" :sort-by="sortBy" :sort-type="sortType"
-      :rows-per-page="10"/>
+    <EasyDataTable :headers="scheduleMCHeaders" :items="scheduleMCTimeFiltered" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="10" table-class-name="customize-table"/>
+    <br />
+    <br />
   </main>
 </template>
 
@@ -17,18 +18,19 @@ import type { Header, SortType } from "vue3-easy-data-table";
 const sortBy = "departure_time";
 const sortType: SortType = "asc";
 
-const headers: Header[] = [
+const scheduleMCHeaders: Header[] = [
   { text: "Departure", value: "departure_time", sortable: true },
   { text: "Route", value: "route_short_name" },
   { text: "Headsign", value: "trip_headsign" },
 ];
 
 const scheduleStore = useScheduleStore();
-const getScheduleMCTable = computed(() => {
-  return scheduleStore.getScheduleMCFields;
+const scheduleMCTimeFiltered = computed(() => {
+  return scheduleStore.getScheduleMCTimeFiltered;
 });
 
 onMounted(() => {
+  scheduleStore.fetchTime();
   scheduleStore.fetchScheduleMC();
 });
 </script>

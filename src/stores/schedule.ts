@@ -7,6 +7,7 @@ export const useScheduleStore = defineStore("schedule", {
     schedulePETimeFiltered: [] as any, // TODO: Replace any for correct type after tests & checks are done
     scheduleMC: [],
     scheduleMCFields: [],
+    scheduleMCTimeFiltered: [] as any, // TODO: Replace any for correct type after tests & checks are done
     time: '',
   }),
   getters: {
@@ -24,6 +25,9 @@ export const useScheduleStore = defineStore("schedule", {
     },
     getScheduleMCFields(state) {
       return state.scheduleMCFields
+    },
+    getScheduleMCTimeFiltered(state) {
+      return state.scheduleMCTimeFiltered
     },
     getTime(state) {
       return state.time;
@@ -54,6 +58,12 @@ export const useScheduleStore = defineStore("schedule", {
         const data = await axios.get('https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=viajes-de-hoy&q=&rows=500&facet=route_short_name&refine.stop_id=MC&exclude.route_short_name=L8&exclude.route_short_name=S3&exclude.route_short_name=S9&exclude.route_short_name=RL1&exclude.route_short_name=RL2&exclude.route_short_name=S1&exclude.route_short_name=S2&exclude.route_short_name=L6&exclude.route_short_name=L7&exclude.route_short_name=FV&exclude.route_short_name=L12&exclude.trip_headsign=Montserrat&exclude.trip_headsign=Ribes-Enlla%C3%A7&exclude.trip_headsign=Nuria&exclude.trip_headsign=Monistrol+de+Montserrat&exclude.trip_headsign=Monistrol-Vila&exclude.trip_headsign=Manresa-Baixador&exclude.trip_headsign=Igualada&exclude.trip_headsign=Olesa+de+Montserrat&exclude.trip_headsign=Martorell+Enlla%C3%A7')
         this.scheduleMC = data.data.records
         this.scheduleMCFields = this.scheduleMC.map(x => x['fields'])
+
+        this.scheduleMCTimeFiltered = this.scheduleMCFields.map(x => {
+          if (x['departure_time'] >= this.time) {
+              return x
+          }
+        }).filter(notUndefined => notUndefined !== undefined)
       }
       catch (error) {
         alert(error)
