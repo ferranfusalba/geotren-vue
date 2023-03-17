@@ -9,6 +9,7 @@ export const useScheduleStore = defineStore("schedule", {
     scheduleMCFields: [],
     scheduleMCTimeFiltered: [] as object,
     time: '',
+    realTime: ''
   }),
   getters: {
     getSchedulePE(state) {
@@ -31,6 +32,9 @@ export const useScheduleStore = defineStore("schedule", {
     },
     getTime(state) {
       return state.time;
+    },
+    getRealTime(state) {
+      return state.realTime;
     }
   },
   actions: {
@@ -77,7 +81,16 @@ export const useScheduleStore = defineStore("schedule", {
       const seconds = today.getSeconds() < 10 ? '0' + today.getSeconds() : today.getSeconds();
       const time = hours + ":" + minutes + ":" + seconds;
       this.time = time;
-      // TODO: print real time, get next train (countdown)
     },
+    fetchRealTime() {
+      setInterval(() => {
+        const date = new Date();
+        const hours = date.getHours() < 10 ? '0' + date.getHours() : date.getHours();
+        const minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes();
+        const seconds = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
+        const time = hours + ":" + minutes + ":" + seconds;
+        this.realTime = time;
+      }, 1000);
+    }
   },
 })
