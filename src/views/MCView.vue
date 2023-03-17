@@ -27,7 +27,6 @@ const scheduleStore = useScheduleStore();
 const getScheduleMCTable = computed(() => {
   return scheduleStore.getScheduleMCTable;
 });
-console.log('getScheduleMCTable', getScheduleMCTable);
 
 onMounted(() => {
   scheduleStore.fetchScheduleMC();

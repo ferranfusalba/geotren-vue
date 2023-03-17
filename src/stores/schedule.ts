@@ -38,12 +38,10 @@ export const useScheduleStore = defineStore("schedule", {
         this.schedulePETable = this.schedulePE.map(x => x['fields'])
 
         this.filteredPETable = this.schedulePETable.map(x => {
-          if (x['departure_time'] > this.time) {
+          if (x['departure_time'] >= this.time) {
               return x
           }
         }).filter(notUndefined => notUndefined !== undefined)
-
-        console.log('filteredPETable', this.filteredPETable)
       }
       catch (error) {
         alert(error)
