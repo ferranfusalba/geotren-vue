@@ -2,23 +2,7 @@
   <main>
     <h2>Origin PE</h2>
     <!-- <p>{{getTime}}</p> -->
-    <!-- <table>
-      <tr>
-        <th>Line</th>
-        <th>Dest.</th>
-        <th>Dir.</th>
-        <th>Est.</th>
-        <th>UT</th>
-      </tr>
-      <tr v-for="item in getRealTime" :key="item['id']">
-        <td>{{ item['fields']['lin'] }}</td>
-        <td>{{ item['fields']['desti'] }}</td>
-        <td>{{ item['fields']['dir'] }}</td>
-        <td>{{ item['fields']['estacionat_a'] }}</td>
-        <td>{{ item['fields']['tipus_unitat'] }}</td>
-      </tr>
-    </table> -->
-    <EasyDataTable :headers="headersRealtime" :items="getRealTimeFields" :hide-footer="true" table-class-name="customize-table" />
+    <EasyDataTable :headers="headersRealtime" :items="getRealTimeFields" :hide-footer="true" table-class-name="customize-table" style="--6c2c1440: 0;"/>
     <picture>
         <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%">
     </picture>
@@ -52,9 +36,6 @@ const headersSchedule: Header[] = [
 
 
 const realTimestore = useRealTimeStore();
-const getRealTime = computed(() => {
-  return realTimestore.getRealTime;
-});
 const getRealTimeFields = computed(() => {
   return realTimestore.getRealTimeFields;
 });
@@ -85,9 +66,3 @@ onMounted(() => {
 });
 
 </script>
-<!-- 
-<style scoped lang="scss">
-.vue3-easy-data-table {
-  --6c2c1440: 0 !important;
-}
-</style> -->
