@@ -4,10 +4,10 @@ export const useScheduleStore = defineStore("schedule", {
   state: () => ({
     schedulePE: [],
     schedulePEFields: [],
-    schedulePETimeFiltered: [] as any, // TODO: Replace any for correct type after tests & checks are done
+    schedulePETimeFiltered: [] as object,
     scheduleMC: [],
     scheduleMCFields: [],
-    scheduleMCTimeFiltered: [] as any, // TODO: Replace any for correct type after tests & checks are done
+    scheduleMCTimeFiltered: [] as object,
     time: '',
   }),
   getters: {
