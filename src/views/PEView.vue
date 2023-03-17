@@ -1,7 +1,7 @@
 <template>
   <main>
     <h2>Origin PE</h2>
-    <p>{{getTime}}</p>
+    <!-- <p>{{getTime}}</p> -->
     <table>
       <tr>
         <th>Line</th>
@@ -38,28 +38,25 @@ import type { Header, SortType } from "vue3-easy-data-table";
 
 const sortBy = "departure_time";
 const sortType: SortType = "asc";
-
 const headers: Header[] = [
   { text: "Departure", value: "departure_time", sortable: true },
-  { text: "Route", value: "route_short_name"},
-  { text: "Headsign", value: "trip_headsign"},
+  { text: "Route", value: "route_short_name" },
+  { text: "Headsign", value: "trip_headsign" },
 ];
+
 
 const realTimestore = useRealTimeStore();
 const getRealTime = computed(() => {
   return realTimestore.getRealTime;
 });
-console.log('getRealTime', getRealTime)
-const getTime = computed(() => {
-  return scheduleStore.getTime;
-})
-console.log('getTime', getTime);
+// const getTime = computed(() => {
+//   return scheduleStore.getTime;
+// })
 
 const scheduleStore = useScheduleStore();
-const getSchedulePETable = computed(() => {
-  return scheduleStore.getSchedulePETable;
-});
-console.log('getSchedulePETable', getSchedulePETable);
+// const getSchedulePETable = computed(() => {
+//   return scheduleStore.getSchedulePETable;
+// });
 const getFilteredPETable = computed(() => {
   return scheduleStore.getFilteredPETable;
 });
