@@ -2,7 +2,7 @@
   <main>
     <h2>Origin PE</h2>
     <!-- <p>{{getTime}}</p> -->
-    <table>
+    <!-- <table>
       <tr>
         <th>Line</th>
         <th>Dest.</th>
@@ -17,11 +17,12 @@
         <td>{{ item['fields']['estacionat_a'] }}</td>
         <td>{{ item['fields']['tipus_unitat'] }}</td>
       </tr>
-    </table>
+    </table> -->
+    <EasyDataTable :headers="headersRealtime" :items="getRealTimeFields" :hide-footer="true" table-class-name="customize-table" />
     <picture>
         <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%">
     </picture>
-    <EasyDataTable :headers="headers" :items="getFilteredPETable" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="5" table-class-name="customize-table"/>
+    <EasyDataTable :headers="headersSchedule" :items="getFilteredPETable" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="5" table-class-name="customize-table"/>
     <br>
     <br>
   </main>
@@ -38,7 +39,12 @@ import type { Header, SortType } from "vue3-easy-data-table";
 
 const sortBy = "departure_time";
 const sortType: SortType = "asc";
-const headers: Header[] = [
+const headersRealtime: Header[] = [
+  { text: "Unit", value: "tipus_unitat" },
+  { text: "Line", value: "lin" },
+  { text: "Destination", value: "desti" }
+];
+const headersSchedule: Header[] = [
   { text: "Departure", value: "departure_time", sortable: true },
   { text: "Route", value: "route_short_name" },
   { text: "Headsign", value: "trip_headsign" },
@@ -48,6 +54,9 @@ const headers: Header[] = [
 const realTimestore = useRealTimeStore();
 const getRealTime = computed(() => {
   return realTimestore.getRealTime;
+});
+const getRealTimeFields = computed(() => {
+  return realTimestore.getRealTimeFields;
 });
 // const getTime = computed(() => {
 //   return scheduleStore.getTime;
@@ -76,3 +85,9 @@ onMounted(() => {
 });
 
 </script>
+<!-- 
+<style scoped lang="scss">
+.vue3-easy-data-table {
+  --6c2c1440: 0 !important;
+}
+</style> -->
