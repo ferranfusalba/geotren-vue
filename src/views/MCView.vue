@@ -2,6 +2,7 @@
   <main>
     <h2>Origin MC</h2>
     <p>{{ realTime }}</p>
+    <p>{{ currentDate }}</p>
     <EasyDataTable :headers="scheduleMCHeaders" :items="scheduleMCTimeFiltered" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="10" table-class-name="customize-table"/>
     <br />
     <br />
@@ -31,6 +32,9 @@ const scheduleMCTimeFiltered = computed(() => {
 });
 const realTime = computed(() => {
   return scheduleStore.getRealTime;
+});
+const currentDate = computed(() => {
+  return scheduleStore.getCurrentDate;
 });
 
 onMounted(() => {

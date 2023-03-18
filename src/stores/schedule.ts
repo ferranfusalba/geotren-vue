@@ -8,8 +8,10 @@ export const useScheduleStore = defineStore("schedule", {
     scheduleMC: [],
     scheduleMCFields: [],
     scheduleMCTimeFiltered: [] as object,
+    scheduleMCTimeLeft: [] as object,
     time: '',
-    realTime: ''
+    realTime: '',
+    currentDate: new Date()
   }),
   getters: {
     getSchedulePE(state) {
@@ -35,6 +37,9 @@ export const useScheduleStore = defineStore("schedule", {
     },
     getRealTime(state) {
       return state.realTime;
+    },
+    getCurrentDate(state) {
+      return state.currentDate;
     }
   },
   actions: {
@@ -68,6 +73,17 @@ export const useScheduleStore = defineStore("schedule", {
               return x
           }
         }).filter(notUndefined => notUndefined !== undefined)
+
+        const values = Object.values(this.scheduleMCTimeFiltered);
+
+        this.scheduleMCTimeLeft = values.map(x => {
+          console.log('this.time, departure_time', this.time, x['departure_time'], typeof this.time, typeof x['departure_time']);
+          // console.log('this.currentDate', this.currentDate);
+          x['trip_headsign'] = this.time;
+          return x;
+        })
+        console.log('this.scheduleMCTimeLeft', this.scheduleMCTimeLeft);
+        console.log('this.currentDate', this.currentDate);
       }
       catch (error) {
         alert(error)
@@ -90,6 +106,7 @@ export const useScheduleStore = defineStore("schedule", {
         const seconds = date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds();
         const time = hours + ":" + minutes + ":" + seconds;
         this.realTime = time;
+        this.currentDate = date;
       }, 1000);
     }
   },
