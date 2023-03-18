@@ -1,11 +1,9 @@
 <template>
   <main>
     <h2>Origin MC</h2>
-    <p>{{ realTime }}</p>
     <p>{{ currentDate }}</p>
-    <EasyDataTable :headers="scheduleMCHeaders" :items="scheduleMCTimeFiltered" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="10" table-class-name="customize-table"/>
-    <br />
-    <br />
+    <EasyDataTable :headers="scheduleMCHeaders" :items="scheduleMCTimeFiltered" :sort-by="sortBy" :sort-type="sortType"
+      :rows-per-page="10" table-class-name="customize-table" />
   </main>
 </template>
 
@@ -30,9 +28,6 @@ const scheduleStore = useScheduleStore();
 const scheduleMCTimeFiltered = computed(() => {
   return scheduleStore.getScheduleMCTimeFiltered;
 });
-const realTime = computed(() => {
-  return scheduleStore.getRealTime;
-});
 const currentDate = computed(() => {
   return scheduleStore.getCurrentDate;
 });
@@ -43,3 +38,9 @@ onMounted(() => {
   scheduleStore.fetchRealTime();
 });
 </script>
+
+<style scoped lang="scss">
+main {
+  padding-bottom: 3.75rem;
+}
+</style>

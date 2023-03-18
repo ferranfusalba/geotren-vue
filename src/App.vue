@@ -18,12 +18,6 @@ import { RouterLink, RouterView } from 'vue-router'
 
 <style scoped lang="scss">
 :root {
-  height: 100vh;
-
-  main {
-    height: calc(100vh - 3.75rem);
-  }
-
   footer {
     position: fixed;
     bottom: 0;
@@ -45,4 +39,5 @@ import { RouterLink, RouterView } from 'vue-router'
       }
     }
   }
-}</style>
+}
+</style>

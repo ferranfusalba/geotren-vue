@@ -1,13 +1,13 @@
 <template>
   <main>
     <h2>Origin PE</h2>
-    <EasyDataTable :headers="realTimePEHeaders" :items="realTimePEFields" :hide-footer="true" table-class-name="customize-table" style="--6c2c1440: 0;"/>
+    <EasyDataTable :headers="realTimePEHeaders" :items="realTimePEFields" :hide-footer="true"
+      table-class-name="customize-table" style="--6c2c1440: 0;" />
     <picture>
-        <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%">
+      <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%">
     </picture>
-    <EasyDataTable :headers="schedulePEHeaders" :items="schedulePETimeFiltered" :sort-by="sortBy" :sort-type="sortType" :rows-per-page="5" table-class-name="customize-table"/>
-    <br>
-    <br>
+    <EasyDataTable :headers="schedulePEHeaders" :items="schedulePETimeFiltered" :sort-by="sortBy" :sort-type="sortType"
+      :rows-per-page="5" table-class-name="customize-table" />
   </main>
 </template>
 
@@ -51,3 +51,9 @@ onMounted(() => {
 });
 
 </script>
+
+<style scoped lang="scss">
+main {
+  padding-bottom: 3.75rem;
+}
+</style>
