@@ -1,5 +1,11 @@
 import { defineStore } from 'pinia'
 import axios from "axios"
+
+function toSeconds(time_str: string) {
+  const parts: Array<string> = time_str.split(':');
+  return Number(parts[0]) * 3600 + Number(parts[1]) * 60 + + Number(parts[2]);
+}
+
 export const useScheduleStore = defineStore("schedule", {
   state: () => ({
     schedulePE: [],
@@ -77,13 +83,19 @@ export const useScheduleStore = defineStore("schedule", {
         const values = Object.values(this.scheduleMCTimeFiltered);
 
         this.scheduleMCTimeLeft = values.map(x => {
-          console.log('this.time, departure_time', this.time, x['departure_time'], typeof this.time, typeof x['departure_time']);
-          // console.log('this.currentDate', this.currentDate);
-          x['trip_headsign'] = this.time;
+          const diff = Math.abs(toSeconds(x['departure_time']) - toSeconds(this.time));
+          const result = [
+            Math.floor(diff / 3600),
+            Math.floor((diff % 3600) / 60),
+            diff % 60
+          ];
+          const timeResult = result.map(function(v) {
+            return v < 10 ? '0' + v : v;
+          }).join(':');
+
+          x['trip_headsign'] = timeResult;
           return x;
         })
-        console.log('this.scheduleMCTimeLeft', this.scheduleMCTimeLeft);
-        console.log('this.currentDate', this.currentDate);
       }
       catch (error) {
         alert(error)
@@ -108,6 +120,6 @@ export const useScheduleStore = defineStore("schedule", {
         this.realTime = time;
         this.currentDate = date;
       }, 1000);
-    }
+    },
   },
 })
