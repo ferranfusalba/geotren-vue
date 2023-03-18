@@ -11,6 +11,7 @@ export const useScheduleStore = defineStore("schedule", {
     schedulePE: [],
     schedulePEFields: [],
     schedulePETimeFiltered: [] as object,
+    schedulePETimeLeft: [] as object,
     scheduleMC: [],
     scheduleMCFields: [],
     scheduleMCTimeFiltered: [] as object,
@@ -61,6 +62,23 @@ export const useScheduleStore = defineStore("schedule", {
               return x
           }
         }).filter(notUndefined => notUndefined !== undefined)
+
+        const values = Object.values(this.schedulePETimeFiltered);
+
+        this.schedulePETimeLeft = values.map(x => {
+          const diff = Math.abs(toSeconds(x['departure_time']) - toSeconds(this.time));
+          const result = [
+            Math.floor(diff / 3600),
+            Math.floor((diff % 3600) / 60),
+            diff % 60
+          ];
+          const timeResult = result.map(function(v) {
+            return v < 10 ? '0' + v : v;
+          }).join(':');
+
+          x['left_str'] = timeResult;
+          return x;
+        })
       }
       catch (error) {
         alert(error)
@@ -93,7 +111,7 @@ export const useScheduleStore = defineStore("schedule", {
             return v < 10 ? '0' + v : v;
           }).join(':');
 
-          x['trip_headsign'] = timeResult;
+          x['left_str'] = timeResult;
           return x;
         })
       }
