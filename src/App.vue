@@ -21,7 +21,7 @@ import { RouterLink, RouterView } from 'vue-router'
   height: 100vh;
 
   main {
-    height: calc(100vh - 3rem);
+    height: calc(100vh - 3.75rem);
   }
 
   footer {
@@ -29,17 +29,19 @@ import { RouterLink, RouterView } from 'vue-router'
     bottom: 0;
 
     nav {
-      height: 3rem;
+      height: 3.75rem;
       width: 100vw;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      text-align: center;
-      align-items: center;
-      background-color: yellowgreen;
+      background-color: #97d700;
 
       a {
+        display: flex;
+        justify-content: center;
+        align-items: center;
         text-decoration: none;
-        color: white;
+        height: 100%;
+        color: #51565c;
       }
     }
   }
