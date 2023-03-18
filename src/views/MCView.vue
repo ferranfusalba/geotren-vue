@@ -21,7 +21,7 @@ const sortType: SortType = "asc";
 const scheduleMCHeaders: Header[] = [
   { text: "Departure", value: "departure_time", sortable: true },
   { text: "Route", value: "route_short_name" },
-  { text: "Left", value: "trip_headsign" },
+  { text: "Left", value: "left_str" },
 ];
 
 const scheduleStore = useScheduleStore();

@@ -30,7 +30,7 @@ const realTimePEHeaders: Header[] = [
 const schedulePEHeaders: Header[] = [
   { text: "Departure", value: "departure_time", sortable: true },
   { text: "Route", value: "route_short_name" },
-  { text: "Headsign", value: "trip_headsign" },
+  { text: "Left", value: "left_str" },
 ];
 
 
