@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 // Vue
-import { onMounted, computed, ref } from 'vue'
+import { onMounted, computed, ref, h } from 'vue'
 // Pinia Store
 import { useScheduleStore } from '../stores/schedule'
 // Table
@@ -70,6 +70,15 @@ import {
   type SortingState,
   getSortedRowModel
 } from '@tanstack/vue-table'
+// Assets
+import R5Logo from '../components/lines/R5Logo.vue'
+import R6Logo from '../components/lines/R6Logo.vue'
+import R50Logo from '../components/lines/R50Logo.vue'
+import R53Logo from '../components/lines/R53Logo.vue'
+import R60Logo from '../components/lines/R60Logo.vue'
+import R63Logo from '../components/lines/R63Logo.vue'
+import S4Logo from '../components/lines/S4Logo.vue'
+import S8Logo from '../components/lines/S8Logo.vue'
 
 const sortBy = 'departure_time'
 const sortType: SortType = 'asc'
@@ -121,14 +130,24 @@ type Train = {
 
 const columnHelper = createColumnHelper<Train>()
 
-// TODO: Finish all line cases
 const getRouteCell = (value: string) => {
-  console.log('value', value)
   switch (value) {
+    case 'S4':
+      return h(S4Logo)
+    case 'S8':
+      return h(S8Logo)
+    case 'R5':
+      return h(R5Logo)
+    case 'R50':
+      return h(R50Logo)
     case 'R53':
-      return 'R5!'
+      return h(R53Logo)
+    case 'R6':
+      return h(R6Logo)
+    case 'R60':
+      return h(R60Logo)
     case 'R63':
-      return 'R6!'
+      return h(R63Logo)
     default:
       return value
   }
