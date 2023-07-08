@@ -11,7 +11,7 @@
       table-class-name="customize-table"
     />
 
-    <div class="p-2">
+    <div class="table-lines">
       <table>
         <thead>
           <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
@@ -27,6 +27,7 @@
                 :render="header.column.columnDef.header"
                 :props="header.getContext()"
               />
+              {{ { asc: ' 🔼', desc: ' 🔽' }[header.column.getIsSorted() as string] }}
             </th>
           </tr>
         </thead>
@@ -49,7 +50,6 @@
           </tr>
         </tfoot>
       </table>
-      <div class="h-4" />
     </div>
   </main>
 </template>

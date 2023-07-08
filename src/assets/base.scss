@@ -72,3 +72,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.table-lines {
+  table {
+    width: 100%;
+    th {
+      font-weight: 700;
+    }
+    td {
+      text-align: center;
+    }
+  }
+}
