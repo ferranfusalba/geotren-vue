@@ -9,11 +9,14 @@
       style="--6c2c1440: 0"
     >
       <template #item-lin="item">
-        <img
-          :src="`/src/assets/lines/${item.lin}.svg`"
-          alt=""
-          style="height: 22px; display: flex; align-items: center"
-        />
+        <R50Logo v-if="item.lin === 'R50'" />
+        <R53Logo v-if="item.lin === 'R53'" />
+        <R5Logo v-if="item.lin === 'R5'" />
+        <R60Logo v-if="item.lin === 'R60'" />
+        <R63Logo v-if="item.lin === 'R63'" />
+        <R6Logo v-if="item.lin === 'R6'" />
+        <S4Logo v-if="item.lin === 'S4'" />
+        <S8Logo v-if="item.lin === 'S8'" />
       </template>
     </EasyDataTable>
 
