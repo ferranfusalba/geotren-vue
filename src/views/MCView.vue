@@ -12,7 +12,7 @@
     >
       <template #item-route_short_name="item">
         <img
-          :src="`/src/assets/lines/${item.route_short_name}.svg`"
+          :src="`assets/lines/${item.route_short_name}.svg`"
           alt=""
           style="height: 22px; display: flex; align-items: center"
         />
