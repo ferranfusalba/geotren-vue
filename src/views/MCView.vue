@@ -9,7 +9,15 @@
       :sort-type="sortType"
       :rows-per-page="10"
       table-class-name="customize-table"
-    />
+    >
+      <template #item-route_short_name="item">
+        <img
+          :src="`/src/assets/lines/${item.route_short_name}.svg`"
+          alt=""
+          style="height: 22px; display: flex; align-items: center"
+        />
+      </template>
+    </EasyDataTable>
 
     <div class="table-lines">
       <table>
