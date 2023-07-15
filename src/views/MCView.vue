@@ -1,7 +1,5 @@
 <template>
   <main>
-    <h2>Origin MC</h2>
-    <p>{{ currentDate }}</p>
     <EasyDataTable
       :headers="scheduleMCHeaders"
       :items="scheduleMCTimeFiltered"
@@ -103,9 +101,6 @@ const scheduleMCHeaders: Header[] = [
 const scheduleStore = useScheduleStore()
 const scheduleMCTimeFiltered = computed(() => {
   return scheduleStore.getScheduleMCTimeFiltered
-})
-const currentDate = computed(() => {
-  return scheduleStore.getCurrentDate
 })
 
 onMounted(() => {
