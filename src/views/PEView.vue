@@ -1,6 +1,5 @@
 <template>
   <main>
-    <h2>Origin PE</h2>
     <EasyDataTable
       :headers="realTimePEHeaders"
       :items="realTimePEFields"
