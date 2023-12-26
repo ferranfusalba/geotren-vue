@@ -27,7 +27,7 @@
       :items="schedulePETimeFiltered"
       :sort-by="sortBy"
       :sort-type="sortType"
-      :rows-per-page="5"
+      :rows-per-page="200"
       table-class-name="customize-table"
     >
       <template #item-route_short_name="item">
@@ -95,6 +95,6 @@ onMounted(() => {
 
 <style scoped lang="scss">
 main {
-  padding-bottom: 3.75rem;
+  padding-bottom: 5.625rem;
 }
 </style>
