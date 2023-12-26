@@ -21,7 +21,7 @@
         <S4Logo v-if="item.route_short_name === 'S4'" />
         <S8Logo v-if="item.route_short_name === 'S8'" />
       </template>
-      <template #item-left_str> Test </template>
+      <!-- <template #item-left_str> Countdown </template> -->
     </EasyDataTable>
   </main>
 </template>
