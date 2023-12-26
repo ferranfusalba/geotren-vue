@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('../views/MCView.vue')
     },
     {
+      path: '/qc',
+      name: 'qc',
+      component: () => import('../views/QCView.vue')
+    },
+    {
       path: '/pe',
       name: 'pe',
       component: () => import('../views/PEView.vue')

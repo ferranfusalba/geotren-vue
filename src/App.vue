@@ -6,6 +6,7 @@
     <nav>
       <RouterLink to="/" :class="{ active: route.path === '/' }">Map</RouterLink>
       <RouterLink to="/mc" :class="{ active: route.path === '/mc' }">MC</RouterLink>
+      <RouterLink to="/qc" :class="{ active: route.path === '/qc' }">QC</RouterLink>
       <RouterLink to="/pe" :class="{ active: route.path === '/pe' }">PE</RouterLink>
     </nav>
   </footer>
@@ -27,9 +28,12 @@ footer {
   width: 100vw;
 
   nav {
-    height: 3.75rem;
+    height: 5.625rem;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
+    padding-bottom: 1.125rem;
+    background-color: #97d700;
+    align-items: center;
 
     a {
       display: flex;
@@ -38,9 +42,12 @@ footer {
       text-decoration: none;
       height: 100%;
       color: #51565c;
+      background-color: #97d700;
       &.active {
         background-color: #51565c;
         color: white;
+        border-radius: 1.5625rem;
+        height: max-content;
       }
       &:not(.active) {
         background-color: #97d700;

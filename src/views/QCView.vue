@@ -1,8 +1,11 @@
 <template>
   <main>
+    <picture>
+      <embed type="image/png" src="https://geotren.fgc.cat/isic/qc" width="100%" />
+    </picture>
     <EasyDataTable
-      :headers="scheduleMCHeaders"
-      :items="scheduleMCTimeFiltered"
+      :headers="scheduleQCHeaders"
+      :items="scheduleQCTimeFiltered"
       :sort-by="sortBy"
       :sort-type="sortType"
       :rows-per-page="200"
@@ -18,6 +21,7 @@
         <S4Logo v-if="item.route_short_name === 'S4'" />
         <S8Logo v-if="item.route_short_name === 'S8'" />
       </template>
+      <template #item-left_str> Test </template>
     </EasyDataTable>
   </main>
 </template>
@@ -41,21 +45,21 @@ import S8Logo from '../components/lines/S8Logo.vue'
 
 const sortBy = 'departure_time'
 const sortType: SortType = 'asc'
-
-const scheduleMCHeaders: Header[] = [
+const scheduleQCHeaders: Header[] = [
   { text: 'Departure', value: 'departure_time', sortable: true },
   { text: 'Route', value: 'route_short_name' },
+  { text: 'Sign', value: 'trip_headsign' },
   { text: 'Left', value: 'left_str' }
 ]
 
 const scheduleStore = useScheduleStore()
-const scheduleMCTimeFiltered = computed(() => {
-  return scheduleStore.getScheduleMCTimeFiltered
+const scheduleQCTimeFiltered = computed(() => {
+  return scheduleStore.getScheduleQCTimeFiltered
 })
 
 onMounted(() => {
   scheduleStore.fetchTime()
-  scheduleStore.fetchScheduleMC()
+  scheduleStore.fetchScheduleQC()
   scheduleStore.fetchRealTime()
 })
 </script>
