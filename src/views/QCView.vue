@@ -21,7 +21,9 @@
         <S4Logo v-if="item.route_short_name === 'S4'" />
         <S8Logo v-if="item.route_short_name === 'S8'" />
       </template>
-      <!-- <template #item-left_str> Countdown </template> -->
+      <template #item-left_str="item">
+        <CountdownCell :departure_time="item.departure_time"></CountdownCell>
+      </template>
     </EasyDataTable>
   </main>
 </template>
@@ -33,6 +35,8 @@ import { onMounted, computed } from 'vue'
 import { useScheduleStore } from '../stores/schedule'
 // Table
 import type { Header, SortType } from 'vue3-easy-data-table'
+// Components
+import CountdownCell from '../components/countdown/CountdownCell.vue'
 // Assets
 import R5Logo from '../components/lines/R5Logo.vue'
 import R6Logo from '../components/lines/R6Logo.vue'
