@@ -80,7 +80,7 @@ export const useScheduleStore = defineStore('schedule', {
 
         this.scheduleMCTimeFiltered = this.scheduleMCFields
           .map((x) => {
-            if (x['departure_time'] >= this.time) {
+            if ((x['departure_time'] as string) >= this.time) {
               return x
             }
           })
@@ -114,7 +114,7 @@ export const useScheduleStore = defineStore('schedule', {
 
         this.scheduleQCTimeFiltered = this.scheduleQC
           .map((x) => {
-            if (x['departure_time'] >= this.time) {
+            if ((x['departure_time'] as string) >= this.time) {
               return x
             }
           })
@@ -135,7 +135,7 @@ export const useScheduleStore = defineStore('schedule', {
 
         this.schedulePETimeFiltered = this.schedulePEFields
           .map((x) => {
-            if (x['departure_time'] >= this.time) {
+            if ((x['departure_time'] as string) >= this.time) {
               return x
             }
           })
