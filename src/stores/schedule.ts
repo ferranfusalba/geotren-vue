@@ -119,21 +119,6 @@ export const useScheduleStore = defineStore('schedule', {
             }
           })
           .filter((notUndefined) => notUndefined !== undefined)
-
-        const values = Object.values(this.scheduleQCTimeFiltered)
-
-        this.scheduleQCTimeLeft = values.map((x) => {
-          const diff = Math.abs(toSeconds(x['departure_time']) - toSeconds(this.time))
-          const result = [Math.floor(diff / 3600), Math.floor((diff % 3600) / 60), diff % 60]
-          const timeResult = result
-            .map(function (v) {
-              return v < 10 ? '0' + v : v
-            })
-            .join(':')
-
-          x['left_str'] = timeResult
-          return x
-        })
       } catch (error) {
         alert(error)
         console.log(error)
