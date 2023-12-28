@@ -49,6 +49,7 @@ import S8Logo from '../components/lines/S8Logo.vue'
 
 const sortBy = 'departure_time'
 const sortType: SortType = 'asc'
+
 const scheduleQCHeaders: Header[] = [
   { text: 'Departure', value: 'departure_time', sortable: false },
   { text: 'Route', value: 'route_short_name' },
@@ -64,7 +65,6 @@ const scheduleQCTimeFiltered = computed(() => {
 onMounted(() => {
   scheduleStore.fetchTime()
   scheduleStore.fetchScheduleQC()
-  scheduleStore.fetchRealTime()
 })
 </script>
 

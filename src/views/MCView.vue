@@ -61,7 +61,6 @@ const scheduleMCTimeFiltered = computed(() => {
 onMounted(() => {
   scheduleStore.fetchTime()
   scheduleStore.fetchScheduleMC()
-  scheduleStore.fetchRealTime()
 })
 </script>
 
