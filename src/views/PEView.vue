@@ -8,11 +8,11 @@
       style="--6c2c1440: 0"
     >
       <template #item-lin="item">
-        <R50Logo v-if="item.lin === 'R50'" />
-        <R53Logo v-if="item.lin === 'R53'" />
+        <R50Logo v-if="item.lin === 'R5R'" />
         <R5Logo v-if="item.lin === 'R5'" />
-        <R60Logo v-if="item.lin === 'R60'" />
-        <R63Logo v-if="item.lin === 'R63'" />
+        <R60Logo v-if="item.lin === 'R6R'" />
+        <R63Logo v-if="item.lin === 'R61'" />
+        <R63Logo v-if="item.lin === 'R62'" />
         <R6Logo v-if="item.lin === 'R6'" />
         <S4Logo v-if="item.lin === 'S4'" />
         <S8Logo v-if="item.lin === 'S8'" />
