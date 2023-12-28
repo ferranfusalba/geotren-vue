@@ -58,7 +58,7 @@ export const useScheduleStore = defineStore('schedule', {
 
         this.scheduleMCTimeFiltered = this.scheduleMCFields
           .map((x) => {
-            if (x['departure_time'] >= this.time) {
+            if ((x['departure_time'] as string) >= this.time) {
               return x
             }
           })
