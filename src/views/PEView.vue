@@ -40,6 +40,9 @@
         <S4Logo v-if="item.route_short_name === 'S4'" />
         <S8Logo v-if="item.route_short_name === 'S8'" />
       </template>
+      <template #item-left_str="item">
+        <CountdownCell :departure_time="item.departure_time"></CountdownCell>
+      </template>
     </EasyDataTable>
   </main>
 </template>
@@ -52,6 +55,8 @@ import { useRealTimeStore } from '../stores/realtime'
 import { useScheduleStore } from '../stores/schedule'
 // Table
 import type { Header, SortType } from 'vue3-easy-data-table'
+// Components
+import CountdownCell from '../components/countdown/CountdownCell.vue'
 // Assets
 import R5Logo from '../components/lines/R5Logo.vue'
 import R6Logo from '../components/lines/R6Logo.vue'
@@ -70,9 +75,9 @@ const realTimePEHeaders: Header[] = [
   { text: 'Destination', value: 'desti' }
 ]
 const schedulePEHeaders: Header[] = [
-  { text: 'Departure', value: 'departure_time', sortable: true },
+  { text: 'Departure', value: 'departure_time', sortable: false },
   { text: 'Route', value: 'route_short_name' },
-  { text: 'Left', value: 'left_str' }
+  { text: 'Left', value: 'left_str', width: 84 }
 ]
 
 const realTimeStore = useRealTimeStore()
@@ -88,7 +93,6 @@ const schedulePETimeFiltered = computed(() => {
 onMounted(() => {
   realTimeStore.fetchRealTimePE()
   scheduleStore.fetchTime()
-  scheduleStore.fetchRealTime()
   scheduleStore.fetchSchedulePE()
 })
 </script>
