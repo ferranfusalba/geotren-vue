@@ -4,10 +4,18 @@
   </main>
   <footer>
     <nav>
-      <RouterLink to="/" :class="{ active: route.path === '/' }">Map</RouterLink>
-      <RouterLink to="/mc" :class="{ active: route.path === '/mc' }">MC</RouterLink>
-      <RouterLink to="/qc" :class="{ active: route.path === '/qc' }">QC</RouterLink>
-      <RouterLink to="/pe" :class="{ active: route.path === '/pe' }">PE</RouterLink>
+      <div>
+        <RouterLink to="/" :class="{ active: route.path === '/' }">Map</RouterLink>
+      </div>
+      <div>
+        <RouterLink to="/mc" :class="{ active: route.path === '/mc' }">MC</RouterLink>
+      </div>
+      <div>
+        <RouterLink to="/qc" :class="{ active: route.path === '/qc' }">QC</RouterLink>
+      </div>
+      <div>
+        <RouterLink to="/pe" :class="{ active: route.path === '/pe' }">PE</RouterLink>
+      </div>
     </nav>
   </footer>
 </template>
@@ -35,22 +43,29 @@ footer {
     background-color: #97d700;
     align-items: center;
 
-    a {
+    div {
       display: flex;
       justify-content: center;
-      align-items: center;
-      text-decoration: none;
-      height: 100%;
-      color: #51565c;
-      background-color: #97d700;
-      &.active {
-        background-color: #51565c;
-        color: white;
-        border-radius: 1.5625rem;
-        height: max-content;
-      }
-      &:not(.active) {
+
+      a {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        height: 100%;
+        color: #51565c;
         background-color: #97d700;
+        width: 80%;
+        &.active {
+          background-color: #51565c;
+          box-shadow: -4px -4px 4px 0px rgba(0, 0, 0, 0.25) inset;
+          color: white;
+          border-radius: 1.5625rem;
+          height: max-content;
+        }
+        &:not(.active) {
+          background-color: #97d700;
+        }
       }
     }
   }
