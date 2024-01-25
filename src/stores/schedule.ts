@@ -7,15 +7,15 @@ export const useScheduleStore = defineStore('schedule', {
     // MC
     scheduleMC: [],
     scheduleMCFields: [],
-    scheduleMCTimeFiltered: [] as object,
+    scheduleMCTimeFiltered: [] as unknown,
     // QC
     scheduleQC: [],
     scheduleQCFields: [],
-    scheduleQCTimeFiltered: [] as object,
+    scheduleQCTimeFiltered: [] as unknown,
     // PE
     schedulePE: [],
     schedulePEFields: [],
-    schedulePETimeFiltered: [] as object
+    schedulePETimeFiltered: [] as unknown
   }),
   getters: {
     getTime(state) {

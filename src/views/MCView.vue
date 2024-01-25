@@ -1,6 +1,26 @@
 <template>
   <main>
     <EasyDataTable
+      :headers="realTimeMCHeaders"
+      :items="realTimeMCFields"
+      :hide-footer="true"
+      table-class-name="customize-table"
+      style="--6c2c1440: 0"
+      :rows-per-page="5"
+    >
+      <template #item-lin="item">
+        <R50Logo v-if="item.lin === 'R5R'" />
+        <R5Logo v-if="item.lin === 'R5'" />
+        <R60Logo v-if="item.lin === 'R6R'" />
+        <R63Logo v-if="item.lin === 'R61'" />
+        <R63Logo v-if="item.lin === 'R62'" />
+        <R6Logo v-if="item.lin === 'R6'" />
+        <S4Logo v-if="item.lin === 'S4'" />
+        <S8Logo v-if="item.lin === 'S8'" />
+      </template>
+    </EasyDataTable>
+
+    <EasyDataTable
       :headers="scheduleMCHeaders"
       :items="scheduleMCTimeFiltered"
       :sort-by="sortBy"
@@ -29,6 +49,7 @@
 // Vue
 import { onMounted, computed } from 'vue'
 // Pinia Store
+import { useRealTimeStore } from '../stores/realtime'
 import { useScheduleStore } from '../stores/schedule'
 // Table
 import type { Header, SortType } from 'vue3-easy-data-table'
@@ -47,11 +68,22 @@ import S8Logo from '../components/lines/S8Logo.vue'
 const sortBy = 'departure_time'
 const sortType: SortType = 'asc'
 
+const realTimeMCHeaders: Header[] = [
+  { text: 'Unit', value: 'tipus_unitat' },
+  { text: 'Line', value: 'lin' },
+  { text: 'Ocupation', value: 'ocupacio_m1_percent' },
+  { text: 'Location', value: 'estacionat_a' }
+]
 const scheduleMCHeaders: Header[] = [
   { text: 'Departure', value: 'departure_time', sortable: false },
   { text: 'Route', value: 'route_short_name' },
   { text: 'Left', value: 'left_str', width: 84 }
 ]
+
+const realTimeStore = useRealTimeStore()
+const realTimeMCFields = computed(() => {
+  return realTimeStore.getRealTimeMCFieldsPP
+})
 
 const scheduleStore = useScheduleStore()
 const scheduleMCTimeFiltered = computed(() => {
@@ -59,6 +91,7 @@ const scheduleMCTimeFiltered = computed(() => {
 })
 
 onMounted(() => {
+  realTimeStore.fetchRealTimeMC()
   scheduleStore.fetchTime()
   scheduleStore.fetchScheduleMC()
 })
@@ -67,5 +100,7 @@ onMounted(() => {
 <style scoped lang="scss">
 main {
   padding-bottom: 5.625rem;
+  display: grid;
+  gap: 8px;
 }
 </style>
