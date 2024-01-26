@@ -19,5 +19,7 @@ export interface Service {
   ut: string
   tipus_unitat: string
   properes_parades: string
-  properes_parades_arr: Stop[]
+  //
+  next_stops: Stop[]
+  distance: number
 }
