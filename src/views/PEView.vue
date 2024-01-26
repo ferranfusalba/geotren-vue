@@ -1,8 +1,29 @@
 <template>
   <main>
     <EasyDataTable
-      :headers="realTimePEHeaders"
-      :items="realTimePEFields"
+      :headers="realTimePEArrivalsHeaders"
+      :items="realTimePEArrivalsFieldsCoords"
+      :sort-by="sortByRealtimePEArrivals"
+      :sort-type="sortTypeRealtimePEArrivals"
+      :hide-footer="true"
+      table-class-name="customize-table"
+      style="--6c2c1440: 0"
+      :rows-per-page="4"
+    >
+      <!-- <template #item-lin="item">
+        <R50Logo v-if="item.lin === 'R5R'" />
+        <R5Logo v-if="item.lin === 'R5'" />
+        <R60Logo v-if="item.lin === 'R6R'" />
+        <R63Logo v-if="item.lin === 'R61'" />
+        <R63Logo v-if="item.lin === 'R62'" />
+        <R6Logo v-if="item.lin === 'R6'" />
+        <S4Logo v-if="item.lin === 'S4'" />
+        <S8Logo v-if="item.lin === 'S8'" />
+      </template> -->
+    </EasyDataTable>
+    <EasyDataTable
+      :headers="realTimePEDeparturesHeaders"
+      :items="realTimePEDeparturesFields"
       :hide-footer="true"
       table-class-name="customize-table"
       style="--6c2c1440: 0"
@@ -18,7 +39,6 @@
         <S8Logo v-if="item.lin === 'S8'" />
       </template>
     </EasyDataTable>
-
     <picture>
       <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%" />
     </picture>
@@ -67,13 +87,24 @@ import R63Logo from '../components/lines/R63Logo.vue'
 import S4Logo from '../components/lines/S4Logo.vue'
 import S8Logo from '../components/lines/S8Logo.vue'
 
-const sortBy = 'departure_time'
-const sortType: SortType = 'asc'
-const realTimePEHeaders: Header[] = [
+const sortByRealtimePEArrivals = 'distance'
+const sortTypeRealtimePEArrivals: SortType = 'asc'
+const realTimePEArrivalsHeaders: Header[] = [
   { text: 'Unit', value: 'tipus_unitat' },
   { text: 'Line', value: 'lin' },
-  { text: 'Destination', value: 'desti' }
+  { text: 'Ocupation', value: 'ocupacio_m1_percent' },
+  { text: 'Location', value: 'estacionat_a' },
+  { text: 'Distance', value: 'distance' }
 ]
+
+const realTimePEDeparturesHeaders: Header[] = [
+  { text: 'Unit', value: 'tipus_unitat' },
+  { text: 'Line', value: 'lin' },
+  { text: 'Destination', value: 'desti' },
+]
+
+const sortBy = 'departure_time'
+const sortType: SortType = 'asc'
 const schedulePEHeaders: Header[] = [
   { text: 'Departure', value: 'departure_time', sortable: false },
   { text: 'Route', value: 'route_short_name' },
@@ -81,8 +112,11 @@ const schedulePEHeaders: Header[] = [
 ]
 
 const realTimeStore = useRealTimeStore()
-const realTimePEFields = computed(() => {
-  return realTimeStore.getRealTimePEFields
+const realTimePEDeparturesFields = computed(() => {
+  return realTimeStore.getRealTimePEDeparturesFields
+})
+const realTimePEArrivalsFieldsCoords = computed(() => {
+  return realTimeStore.getRealTimePEArrivalsFieldsCoords
 })
 
 const scheduleStore = useScheduleStore()
@@ -91,7 +125,8 @@ const schedulePETimeFiltered = computed(() => {
 })
 
 onMounted(() => {
-  realTimeStore.fetchRealTimePE()
+  realTimeStore.fetchRealTimePEDepartures()
+  realTimeStore.fetchRealTimePEArrivals()
   scheduleStore.fetchTime()
   scheduleStore.fetchSchedulePE()
 })
@@ -100,5 +135,7 @@ onMounted(() => {
 <style scoped lang="scss">
 main {
   padding-bottom: 5.625rem;
+  display: grid;
+  gap: 4px;
 }
 </style>

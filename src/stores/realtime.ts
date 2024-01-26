@@ -3,6 +3,15 @@ import axios from 'axios'
 import type { Service, Stop } from '@/types/service'
 import { calcDistance } from '@/utils/utils'
 
+// TODO: Replace any
+interface XInt {
+  dataset: string
+  fields: Service
+  geometry: { type: string; coordinates: number[] }
+  record_timestamp: string
+  recordid: string
+}
+
 export const useRealTimeStore = defineStore('realTime', {
   state: () => ({
     // MC
@@ -11,15 +20,22 @@ export const useRealTimeStore = defineStore('realTime', {
     realTimeMCFieldsPP: [] as Service[],
     realTimeMCFieldsPPCoords: [] as Service[],
     // PE
-    realTimePE: [],
-    realTimePEFields: []
+    realTimePEDepartures: [] as Service[],
+    realTimePEDeparturesFields: [] as Service[],
+    // PE Arrivals
+    realTimePEArrivals: [] as Service[],
+    realTimePEArrivalsFields: [] as Service[],
+    realTimePEArrivalsFieldsCoords: [] as Service[]
   }),
   getters: {
     getRealTimeMCFieldsPPCoords(state) {
       return state.realTimeMCFieldsPPCoords
     },
-    getRealTimePEFields(state) {
-      return state.realTimePEFields
+    getRealTimePEDeparturesFields(state) {
+      return state.realTimePEDeparturesFields
+    },
+    getRealTimePEArrivalsFieldsCoords(state) {
+      return state.realTimePEArrivalsFieldsCoords
     }
   },
   actions: {
@@ -66,13 +82,46 @@ export const useRealTimeStore = defineStore('realTime', {
         console.log(error)
       }
     },
-    async fetchRealTimePE() {
+    async fetchRealTimePEDepartures() {
       try {
         const data = await axios.get(
           'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=posicionament-dels-trens&q=&rows=25&refine.estacionat_a=PE&exclude.desti=PE&exclude.lin=L8&exclude.lin=S3&exclude.lin=S9'
         )
-        this.realTimePE = data.data.records
-        this.realTimePEFields = this.realTimePE.map((x) => x['fields'])
+        this.realTimePEDepartures = data.data.records
+        this.realTimePEDeparturesFields = this.realTimePEDepartures.map((x: any) => {
+          // TODO: Replace any
+          return x['fields']
+        })
+      } catch (error) {
+        alert(error)
+        console.log(error)
+      }
+    },
+    async fetchRealTimePEArrivals() {
+      try {
+        const data = await axios.get(
+          'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=posicionament-dels-trens&q=&rows=25&refine.desti=PE'
+        )
+        this.realTimePEArrivals = data.data.records
+        this.realTimePEArrivalsFields = this.realTimePEArrivals.map((x: any) => x['fields']) // TODO: Replace any
+        this.realTimePEArrivalsFieldsCoords = this.realTimePEArrivalsFields.map((item: Service) => {
+          // PE
+          const sCoords = {
+            latitude: 41.374401614337785,
+            longitude: 2.148548273334978
+          }
+
+          // Item
+          const dCoords = {
+            latitude: item.geo_point_2d[0],
+            longitude: item.geo_point_2d[1]
+          }
+          const dist = calcDistance(sCoords, dCoords)
+
+          item.distance = Math.round(dist * 100) / 100
+
+          return item
+        })
       } catch (error) {
         alert(error)
         console.log(error)
