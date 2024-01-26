@@ -3,6 +3,8 @@
     <EasyDataTable
       :headers="realTimeMCHeaders"
       :items="realTimeMCFields"
+      :sort-by="sortByRealtime"
+      :sort-type="sortTypeRealtime"
       :hide-footer="true"
       table-class-name="customize-table"
       style="--6c2c1440: 0"
@@ -23,8 +25,8 @@
     <EasyDataTable
       :headers="scheduleMCHeaders"
       :items="scheduleMCTimeFiltered"
-      :sort-by="sortBy"
-      :sort-type="sortType"
+      :sort-by="sortBySchedule"
+      :sort-type="sortTypeSchedule"
       :rows-per-page="200"
       table-class-name="customize-table"
     >
@@ -65,15 +67,18 @@ import R63Logo from '../components/lines/R63Logo.vue'
 import S4Logo from '../components/lines/S4Logo.vue'
 import S8Logo from '../components/lines/S8Logo.vue'
 
-const sortBy = 'departure_time'
-const sortType: SortType = 'asc'
-
+const sortByRealtime = 'distance'
+const sortTypeRealtime: SortType = 'asc'
 const realTimeMCHeaders: Header[] = [
   { text: 'Unit', value: 'tipus_unitat' },
   { text: 'Line', value: 'lin' },
   { text: 'Ocupation', value: 'ocupacio_m1_percent' },
-  { text: 'Location', value: 'estacionat_a' }
+  { text: 'Location', value: 'estacionat_a' },
+  { text: 'Distance', value: 'distance' }
 ]
+
+const sortBySchedule = 'departure_time'
+const sortTypeSchedule: SortType = 'asc'
 const scheduleMCHeaders: Header[] = [
   { text: 'Departure', value: 'departure_time', sortable: false },
   { text: 'Route', value: 'route_short_name' },
@@ -82,7 +87,7 @@ const scheduleMCHeaders: Header[] = [
 
 const realTimeStore = useRealTimeStore()
 const realTimeMCFields = computed(() => {
-  return realTimeStore.getRealTimeMCFieldsPP
+  return realTimeStore.getRealTimeMCFieldsPPCoords
 })
 
 const scheduleStore = useScheduleStore()

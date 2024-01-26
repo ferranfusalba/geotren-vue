@@ -1,21 +1,22 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import type { Service, Stop } from '@/types/service'
+import { calcDistance } from '@/utils/utils'
 
 export const useRealTimeStore = defineStore('realTime', {
   state: () => ({
     // MC
     realTimeMC: [],
-    realTimeMCFields: [],
-    realTimeMCFieldsPP: [] as unknown,
-    realTimeMCFieldsPPFiltered: [],
+    realTimeMCFields: [] as Service[],
+    realTimeMCFieldsPP: [] as Service[],
+    realTimeMCFieldsPPCoords: [] as Service[],
     // PE
     realTimePE: [],
     realTimePEFields: []
   }),
   getters: {
-    getRealTimeMCFieldsPP(state) {
-      return state.realTimeMCFieldsPP
+    getRealTimeMCFieldsPPCoords(state) {
+      return state.realTimeMCFieldsPPCoords
     },
     getRealTimePEFields(state) {
       return state.realTimePEFields
@@ -32,33 +33,34 @@ export const useRealTimeStore = defineStore('realTime', {
         this.realTimeMCFieldsPP = this.realTimeMCFields
           .map((x: Service) => {
             const replace = x.properes_parades.replace(/;/g, ',')
-            const arrayed = '[' + replace + ']'
+            const properes_parades_arr = '[' + replace + ']'
 
-            x.properes_parades_arr = JSON.parse(arrayed)
+            x.next_stops = JSON.parse(properes_parades_arr)
 
             return x
           })
           .filter((x: Service) => {
-            // TODO: Filter by geolocation rather than encountered stops
-            // MC coords:
-            // Aprox: [41.48454435471246, 1.917750099201453]
-            // Real?: [41.48016575754757, 1.921882428721086]
-            return (
-              x.properes_parades_arr &&
-              Array.isArray(x.properes_parades_arr) &&
-              x.properes_parades_arr.some((parada: Stop) => parada.parada === 'MC')
-            )
+            return x.next_stops.some((parada: Stop) => parada.parada === 'MC')
           })
-          .sort((a, b) => {
-            const indexA = a.properes_parades_arr.findIndex(
-              (parada: Stop) => parada.parada === 'MC'
-            )
-            const indexB = b.properes_parades_arr.findIndex(
-              (parada: Stop) => parada.parada === 'MC'
-            )
 
-            return indexA - indexB
-          })
+        this.realTimeMCFieldsPPCoords = this.realTimeMCFieldsPP.map((item: Service) => {
+          // MC
+          const sCoords = {
+            latitude: 41.48016575754757,
+            longitude: 1.921882428721086
+          }
+
+          // Item
+          const dCoords = {
+            latitude: item.geo_point_2d[0],
+            longitude: item.geo_point_2d[1]
+          }
+          const dist = calcDistance(sCoords, dCoords)
+
+          item.distance = Math.round(dist * 100) / 100
+
+          return item
+        })
       } catch (error) {
         alert(error)
         console.log(error)
