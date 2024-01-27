@@ -10,16 +10,19 @@
       style="--6c2c1440: 0"
       :rows-per-page="4"
     >
-      <!-- <template #item-lin="item">
+      <template #item-lin="item">
+        <L8Logo v-if="item.lin === 'L8'" />
+        <S3Logo v-if="item.lin === 'S3'" />
+        <S4Logo v-if="item.lin === 'S4'" />
+        <S8Logo v-if="item.lin === 'S8'" />
+        <S9Logo v-if="item.lin === 'S9'" />
         <R50Logo v-if="item.lin === 'R5R'" />
         <R5Logo v-if="item.lin === 'R5'" />
         <R60Logo v-if="item.lin === 'R6R'" />
         <R63Logo v-if="item.lin === 'R61'" />
         <R63Logo v-if="item.lin === 'R62'" />
         <R6Logo v-if="item.lin === 'R6'" />
-        <S4Logo v-if="item.lin === 'S4'" />
-        <S8Logo v-if="item.lin === 'S8'" />
-      </template> -->
+      </template>
     </EasyDataTable>
     <EasyDataTable
       :headers="realTimePEDeparturesHeaders"
@@ -78,14 +81,17 @@ import type { Header, SortType } from 'vue3-easy-data-table'
 // Components
 import CountdownCell from '../components/countdown/CountdownCell.vue'
 // Assets
-import R5Logo from '../components/lines/R5Logo.vue'
-import R6Logo from '../components/lines/R6Logo.vue'
-import R50Logo from '../components/lines/R50Logo.vue'
-import R53Logo from '../components/lines/R53Logo.vue'
-import R60Logo from '../components/lines/R60Logo.vue'
-import R63Logo from '../components/lines/R63Logo.vue'
+import L8Logo from '../components/lines/L8Logo.vue'
+import S3Logo from '../components/lines/S3Logo.vue'
 import S4Logo from '../components/lines/S4Logo.vue'
 import S8Logo from '../components/lines/S8Logo.vue'
+import S9Logo from '../components/lines/S9Logo.vue'
+import R50Logo from '../components/lines/R50Logo.vue'
+import R53Logo from '../components/lines/R53Logo.vue'
+import R5Logo from '../components/lines/R5Logo.vue'
+import R60Logo from '../components/lines/R60Logo.vue'
+import R63Logo from '../components/lines/R63Logo.vue'
+import R6Logo from '../components/lines/R6Logo.vue'
 
 const sortByRealtimePEArrivals = 'distance'
 const sortTypeRealtimePEArrivals: SortType = 'asc'
@@ -100,7 +106,7 @@ const realTimePEArrivalsHeaders: Header[] = [
 const realTimePEDeparturesHeaders: Header[] = [
   { text: 'Unit', value: 'tipus_unitat' },
   { text: 'Line', value: 'lin' },
-  { text: 'Destination', value: 'desti' },
+  { text: 'Destination', value: 'desti' }
 ]
 
 const sortBy = 'departure_time'
