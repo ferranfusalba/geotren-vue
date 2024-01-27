@@ -1,30 +1,12 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import type { Service, Stop } from '@/types/service'
+import type { RecordsItem, Service, Stop } from '@/types/service'
 import { calcDistance } from '@/utils/utils'
-
-// TODO: Replace any
-interface XInt {
-  dataset: string
-  fields: Service
-  geometry: { type: string; coordinates: number[] }
-  record_timestamp: string
-  recordid: string
-}
 
 export const useRealTimeStore = defineStore('realTime', {
   state: () => ({
-    // MC
-    realTimeMC: [],
-    realTimeMCFields: [] as Service[],
-    realTimeMCFieldsPP: [] as Service[],
     realTimeMCFieldsPPCoords: [] as Service[],
-    // PE
-    realTimePEDepartures: [] as Service[],
     realTimePEDeparturesFields: [] as Service[],
-    // PE Arrivals
-    realTimePEArrivals: [] as Service[],
-    realTimePEArrivalsFields: [] as Service[],
     realTimePEArrivalsFieldsCoords: [] as Service[]
   }),
   getters: {
@@ -44,9 +26,11 @@ export const useRealTimeStore = defineStore('realTime', {
         const data = await axios.get(
           'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=posicionament-dels-trens&q=&rows=25&refine.desti=PE&exclude.lin=L8&exclude.lin=S3&exclude.lin=S9'
         )
-        this.realTimeMC = data.data.records
-        this.realTimeMCFields = this.realTimeMC.map((x) => x['fields'])
-        this.realTimeMCFieldsPP = this.realTimeMCFields
+
+        const dataRecords = data.data.records
+        const fields = dataRecords.map((x: RecordsItem) => x['fields'])
+
+        const nextStopsMC = fields
           .map((x: Service) => {
             const replace = x.properes_parades.replace(/;/g, ',')
             const properes_parades_arr = '[' + replace + ']'
@@ -59,7 +43,7 @@ export const useRealTimeStore = defineStore('realTime', {
             return x.next_stops.some((parada: Stop) => parada.parada === 'MC')
           })
 
-        this.realTimeMCFieldsPPCoords = this.realTimeMCFieldsPP.map((item: Service) => {
+        this.realTimeMCFieldsPPCoords = nextStopsMC.map((item: Service) => {
           // MC
           const sCoords = {
             latitude: 41.48016575754757,
@@ -87,11 +71,9 @@ export const useRealTimeStore = defineStore('realTime', {
         const data = await axios.get(
           'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=posicionament-dels-trens&q=&rows=25&refine.estacionat_a=PE&exclude.desti=PE&exclude.lin=L8&exclude.lin=S3&exclude.lin=S9'
         )
-        this.realTimePEDepartures = data.data.records
-        this.realTimePEDeparturesFields = this.realTimePEDepartures.map((x: any) => {
-          // TODO: Replace any
-          return x['fields']
-        })
+        const dataRecords = data.data.records
+
+        this.realTimePEDeparturesFields = dataRecords.map((x: RecordsItem) => x['fields'])
       } catch (error) {
         alert(error)
         console.log(error)
@@ -102,9 +84,10 @@ export const useRealTimeStore = defineStore('realTime', {
         const data = await axios.get(
           'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=posicionament-dels-trens&q=&rows=25&refine.desti=PE'
         )
-        this.realTimePEArrivals = data.data.records
-        this.realTimePEArrivalsFields = this.realTimePEArrivals.map((x: any) => x['fields']) // TODO: Replace any
-        this.realTimePEArrivalsFieldsCoords = this.realTimePEArrivalsFields.map((item: Service) => {
+
+        const dataRecords = data.data.records
+        const fields = dataRecords.map((x: RecordsItem) => x['fields'])
+        this.realTimePEArrivalsFieldsCoords = fields.map((item: Service) => {
           // PE
           const sCoords = {
             latitude: 41.374401614337785,
