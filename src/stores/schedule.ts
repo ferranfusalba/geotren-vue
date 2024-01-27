@@ -1,46 +1,20 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import type { Fields, ScheduleRecordsItem } from '@/types/schedule'
 
 export const useScheduleStore = defineStore('schedule', {
   state: () => ({
     time: '',
-    // MC
-    scheduleMC: [],
-    scheduleMCFields: [],
-    scheduleMCTimeFiltered: [] as unknown,
-    // QC
-    scheduleQC: [],
-    scheduleQCFields: [],
-    scheduleQCTimeFiltered: [] as unknown,
-    // PE
-    schedulePE: [],
-    schedulePEFields: [],
-    schedulePETimeFiltered: [] as unknown
+    scheduleMCTimeFiltered: [] as Fields[],
+    scheduleQCTimeFiltered: [] as Fields[],
+    schedulePETimeFiltered: [] as Fields[]
   }),
   getters: {
-    getTime(state) {
-      return state.time
-    },
-    // MC
-    getScheduleMC(state) {
-      return state.scheduleMC
-    },
     getScheduleMCTimeFiltered(state) {
       return state.scheduleMCTimeFiltered
     },
-    // QC
-    getScheduleQC(state) {
-      return state.scheduleQC
-    },
     getScheduleQCTimeFiltered(state) {
       return state.scheduleQCTimeFiltered
-    },
-    // PE
-    getSchedulePE(state) {
-      return state.schedulePE
-    },
-    getschedulePEFields(state) {
-      return state.schedulePEFields
     },
     getSchedulePETimeFiltered(state) {
       return state.schedulePETimeFiltered
@@ -53,16 +27,17 @@ export const useScheduleStore = defineStore('schedule', {
         const data = await axios.get(
           'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=viajes-de-hoy&q=&rows=500&facet=route_short_name&refine.stop_id=MC&exclude.trip_headsign=Manresa-Baixador&exclude.trip_headsign=Igualada&exclude.trip_headsign=Olesa+de+Montserrat&exclude.trip_headsign=Martorell+Enlla%C3%A7'
         )
-        this.scheduleMC = data.data.records
-        this.scheduleMCFields = this.scheduleMC.map((x) => x['fields'])
 
-        this.scheduleMCTimeFiltered = this.scheduleMCFields
-          .map((x) => {
+        const dataRecords = data.data.records
+        const fields = dataRecords.map((x: ScheduleRecordsItem) => x['fields'])
+
+        this.scheduleMCTimeFiltered = fields
+          .map((x: Fields) => {
             if ((x['departure_time'] as string) >= this.time) {
               return x
             }
           })
-          .filter((notUndefined) => notUndefined !== undefined)
+          .filter((notUndefined: Fields) => notUndefined !== undefined)
       } catch (error) {
         alert(error)
         console.log(error)
@@ -73,16 +48,17 @@ export const useScheduleStore = defineStore('schedule', {
         const data = await axios.get(
           'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=viajes-de-hoy&q=&rows=500&facet=route_short_name&refine.stop_id=QC&exclude.trip_headsign=Pl.+Espanya&exclude.route_short_name=S9'
         )
-        this.scheduleQC = data.data.records
-        this.scheduleQCFields = this.scheduleQC.map((x) => x['fields'])
 
-        this.scheduleQCTimeFiltered = this.scheduleQCFields
-          .map((x) => {
+        const dataRecords = data.data.records
+        const fields = dataRecords.map((x: ScheduleRecordsItem) => x['fields'])
+
+        this.scheduleQCTimeFiltered = fields
+          .map((x: Fields) => {
             if ((x['departure_time'] as string) >= this.time) {
               return x
             }
           })
-          .filter((notUndefined) => notUndefined !== undefined)
+          .filter((notUndefined: Fields) => notUndefined !== undefined)
       } catch (error) {
         alert(error)
         console.log(error)
@@ -94,16 +70,17 @@ export const useScheduleStore = defineStore('schedule', {
         const data = await axios.get(
           'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=viajes-de-hoy&q=&rows=500&refine.stop_id=PE&exclude.route_short_name=L8&exclude.route_short_name=S3&exclude.route_short_name=S9&exclude.trip_headsign=Pl.+Espanya'
         )
-        this.schedulePE = data.data.records
-        this.schedulePEFields = this.schedulePE.map((x) => x['fields'])
 
-        this.schedulePETimeFiltered = this.schedulePEFields
-          .map((x) => {
+        const dataRecords = data.data.records
+        const fields = dataRecords.map((x: ScheduleRecordsItem) => x['fields'])
+
+        this.schedulePETimeFiltered = fields
+          .map((x: Fields) => {
             if ((x['departure_time'] as string) >= this.time) {
               return x
             }
           })
-          .filter((notUndefined) => notUndefined !== undefined)
+          .filter((notUndefined: Fields) => notUndefined !== undefined)
       } catch (error) {
         alert(error)
         console.log(error)
