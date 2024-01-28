@@ -1342,6 +1342,18 @@
     magic-string "^0.25.0"
     string.prototype.matchall "^4.0.6"
 
+"@tanstack/table-core@8.11.7":
+  version "8.11.7"
+  resolved "https://registry.yarnpkg.com/@tanstack/table-core/-/table-core-8.11.7.tgz#266af5af8576e8860df8abfe4e32e9c4ffbc76b0"
+  integrity sha512-N3ksnkbPbsF3PjubuZCB/etTqvctpXWRHIXTmYfJFnhynQKjeZu8BCuHvdlLPpumKbA+bjY4Ay9AELYLOXPWBg==
+
+"@tanstack/vue-table@^8.11.7":
+  version "8.11.7"
+  resolved "https://registry.yarnpkg.com/@tanstack/vue-table/-/vue-table-8.11.7.tgz#fbfafa0d94c701120299cf3499322c305b467b17"
+  integrity sha512-uNAuthA5+6pd5Vfw0brm6E++mxAfLrzsuz/MPXOY5rtGowCu3TPsyVcaMExYMrAKEBJJsUVp4zKtzC/UdCbTtw==
+  dependencies:
+    "@tanstack/table-core" "8.11.7"
+
 "@tootallnate/once@2":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-2.0.0.tgz#f544a148d3ab35801c1f633a7441fd87c2e484bf"
