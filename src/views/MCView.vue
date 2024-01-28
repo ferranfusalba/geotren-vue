@@ -22,6 +22,9 @@
         <R63Logo v-if="item.lin === 'R62'" />
         <R63Logo v-if="item.lin === 'R63'" />
       </template>
+      <template #item-estacionat_a="item">
+        {{stations[item.estacionat_a]}}
+      </template>
     </EasyDataTable>
 
     <EasyDataTable
@@ -60,23 +63,25 @@ import type { Header, SortType } from 'vue3-easy-data-table'
 // Components
 import CountdownCell from '../components/countdown/CountdownCell.vue'
 // Assets
+import S4Logo from '../components/lines/S4Logo.vue'
+import S8Logo from '../components/lines/S8Logo.vue'
 import R5Logo from '../components/lines/R5Logo.vue'
 import R6Logo from '../components/lines/R6Logo.vue'
 import R50Logo from '../components/lines/R50Logo.vue'
 import R53Logo from '../components/lines/R53Logo.vue'
 import R60Logo from '../components/lines/R60Logo.vue'
 import R63Logo from '../components/lines/R63Logo.vue'
-import S4Logo from '../components/lines/S4Logo.vue'
-import S8Logo from '../components/lines/S8Logo.vue'
+// Utils
+import { stations } from "@/utils/stations"
 
 const sortByRealtime = 'distance'
 const sortTypeRealtime: SortType = 'asc'
 const realTimeMCHeaders: Header[] = [
   { text: 'Unit', value: 'tipus_unitat' },
   { text: 'Line', value: 'lin' },
-  { text: 'Ocupation', value: 'ocupacio_m1_percent' },
+  { text: 'Oc.', value: 'ocupacio_m1_percent' },
   { text: 'Location', value: 'estacionat_a' },
-  { text: 'Distance', value: 'distance' }
+  { text: 'Dist.', value: 'distance' }
 ]
 
 const sortBySchedule = 'departure_time'

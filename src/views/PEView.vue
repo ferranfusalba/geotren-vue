@@ -25,6 +25,9 @@
         <R63Logo v-if="item.lin === 'R62'" />
         <R63Logo v-if="item.lin === 'R63'" />
       </template>
+      <template #item-estacionat_a="item">
+        {{stations[item.estacionat_a]}}
+      </template>
     </EasyDataTable>
     <EasyDataTable
       :headers="realTimePEDeparturesHeaders"
@@ -44,6 +47,9 @@
         <R63Logo v-if="item.lin === 'R61'" />
         <R63Logo v-if="item.lin === 'R62'" />
         <R63Logo v-if="item.lin === 'R63'" />
+      </template>
+      <template #item-desti="item">
+        {{stations[item.desti]}}
       </template>
     </EasyDataTable>
     <picture>
@@ -96,15 +102,17 @@ import R5Logo from '../components/lines/R5Logo.vue'
 import R60Logo from '../components/lines/R60Logo.vue'
 import R63Logo from '../components/lines/R63Logo.vue'
 import R6Logo from '../components/lines/R6Logo.vue'
+// Utils
+import { stations } from "@/utils/stations"
 
 const sortByRealtimePEArrivals = 'distance'
 const sortTypeRealtimePEArrivals: SortType = 'asc'
 const realTimePEArrivalsHeaders: Header[] = [
   { text: 'Unit', value: 'tipus_unitat' },
   { text: 'Line', value: 'lin' },
-  { text: 'Ocupation', value: 'ocupacio_m1_percent' },
+  { text: 'Oc.', value: 'ocupacio_m1_percent' },
   { text: 'Location', value: 'estacionat_a' },
-  { text: 'Distance', value: 'distance' }
+  { text: 'Dist.', value: 'distance' }
 ]
 
 const realTimePEDeparturesHeaders: Header[] = [
