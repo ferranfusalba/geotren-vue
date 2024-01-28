@@ -11,14 +11,16 @@
       :rows-per-page="5"
     >
       <template #item-lin="item">
-        <R50Logo v-if="item.lin === 'R5R'" />
+        <S4Logo v-if="item.lin === 'S4'" />
+        <S8Logo v-if="item.lin === 'S8'" />
         <R5Logo v-if="item.lin === 'R5'" />
+        <R50Logo v-if="item.lin === 'R5R'" />
+        <R53Logo v-if="item.lin === 'R53'" />
+        <R6Logo v-if="item.lin === 'R6'" />
         <R60Logo v-if="item.lin === 'R6R'" />
         <R63Logo v-if="item.lin === 'R61'" />
         <R63Logo v-if="item.lin === 'R62'" />
-        <R6Logo v-if="item.lin === 'R6'" />
-        <S4Logo v-if="item.lin === 'S4'" />
-        <S8Logo v-if="item.lin === 'S8'" />
+        <R63Logo v-if="item.lin === 'R63'" />
       </template>
     </EasyDataTable>
 
@@ -31,14 +33,14 @@
       table-class-name="customize-table"
     >
       <template #item-route_short_name="item">
-        <R50Logo v-if="item.route_short_name === 'R50'" />
-        <R53Logo v-if="item.route_short_name === 'R53'" />
-        <R5Logo v-if="item.route_short_name === 'R5'" />
-        <R60Logo v-if="item.route_short_name === 'R60'" />
-        <R63Logo v-if="item.route_short_name === 'R63'" />
-        <R6Logo v-if="item.route_short_name === 'R6'" />
         <S4Logo v-if="item.route_short_name === 'S4'" />
         <S8Logo v-if="item.route_short_name === 'S8'" />
+        <R5Logo v-if="item.route_short_name === 'R5'" />
+        <R50Logo v-if="item.route_short_name === 'R50'" />
+        <R53Logo v-if="item.route_short_name === 'R53'" />
+        <R6Logo v-if="item.route_short_name === 'R6'" />
+        <R60Logo v-if="item.route_short_name === 'R60'" />
+        <R63Logo v-if="item.route_short_name === 'R63'" />
       </template>
       <template #item-left_str="item">
         <CountdownCell :departure_time="item.departure_time"></CountdownCell>
