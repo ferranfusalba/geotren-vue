@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import type { Fields, ScheduleRecordsItem } from '@/types/schedule'
+import type { ScheduleFields, ScheduleRecordsItem } from '@/types/schedule'
 
 export const useScheduleStore = defineStore('schedule', {
   state: () => ({
     time: '',
-    scheduleMCTimeFiltered: [] as Fields[],
-    scheduleQCTimeFiltered: [] as Fields[],
-    schedulePETimeFiltered: [] as Fields[]
+    scheduleMCTimeFiltered: [] as ScheduleFields[],
+    scheduleQCTimeFiltered: [] as ScheduleFields[],
+    schedulePETimeFiltered: [] as ScheduleFields[]
   }),
   getters: {
     getScheduleMCTimeFiltered(state) {
@@ -32,12 +32,12 @@ export const useScheduleStore = defineStore('schedule', {
         const fields = dataRecords.map((x: ScheduleRecordsItem) => x['fields'])
 
         this.scheduleMCTimeFiltered = fields
-          .map((x: Fields) => {
+          .map((x: ScheduleFields) => {
             if ((x['departure_time'] as string) >= this.time) {
               return x
             }
           })
-          .filter((notUndefined: Fields) => notUndefined !== undefined)
+          .filter((notUndefined: ScheduleFields) => notUndefined !== undefined)
       } catch (error) {
         alert(error)
         console.log(error)
@@ -53,12 +53,12 @@ export const useScheduleStore = defineStore('schedule', {
         const fields = dataRecords.map((x: ScheduleRecordsItem) => x['fields'])
 
         this.scheduleQCTimeFiltered = fields
-          .map((x: Fields) => {
+          .map((x: ScheduleFields) => {
             if ((x['departure_time'] as string) >= this.time) {
               return x
             }
           })
-          .filter((notUndefined: Fields) => notUndefined !== undefined)
+          .filter((notUndefined: ScheduleFields) => notUndefined !== undefined)
       } catch (error) {
         alert(error)
         console.log(error)
@@ -75,12 +75,12 @@ export const useScheduleStore = defineStore('schedule', {
         const fields = dataRecords.map((x: ScheduleRecordsItem) => x['fields'])
 
         this.schedulePETimeFiltered = fields
-          .map((x: Fields) => {
+          .map((x: ScheduleFields) => {
             if ((x['departure_time'] as string) >= this.time) {
               return x
             }
           })
-          .filter((notUndefined: Fields) => notUndefined !== undefined)
+          .filter((notUndefined: ScheduleFields) => notUndefined !== undefined)
       } catch (error) {
         alert(error)
         console.log(error)

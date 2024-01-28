@@ -1,4 +1,4 @@
-export interface Fields {
+export interface ScheduleFields {
   arrival_time: string
   date: string
   departure_time: string
@@ -20,9 +20,13 @@ export interface Fields {
   wheelchair_boarding: number
 }
 
+export interface ScheduleFieldsLeft extends ScheduleFields {
+  left_str?: string
+}
+
 export interface ScheduleRecordsItem {
   datasetid: string
-  fields: Fields
+  fields: ScheduleFields
   record_timestamp: string
   recordid: string
 }
