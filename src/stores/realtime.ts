@@ -87,7 +87,17 @@ export const useRealTimeStore = defineStore('realTime', {
 
         const dataRecords = data.data.records
         const fields = dataRecords.map((x: RecordsItem) => x['fields'])
-        this.realTimePEArrivalsFieldsCoords = fields.map((item: Service) => {
+
+        const nextStopsPEArrivals = fields.map((x: Service) => {
+          const replace = x.properes_parades.replace(/;/g, ',')
+          const properes_parades_arr = '[' + replace + ']'
+
+          x.next_stops = JSON.parse(properes_parades_arr)
+
+          return x
+        })
+
+        this.realTimePEArrivalsFieldsCoords = nextStopsPEArrivals.map((item: Service) => {
           // PE
           const sCoords = {
             latitude: 41.374401614337785,
