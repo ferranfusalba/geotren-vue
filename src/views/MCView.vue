@@ -23,7 +23,8 @@
         <R63Logo v-if="item.lin === 'R63'" />
       </template>
       <template #item-estacionat_a="item">
-        {{stations[item.estacionat_a]}}
+        <span v-if="item.estacionat_a">{{ stations[item.estacionat_a] }}</span>
+        <i v-else>{{ stations[item.next_stops[0].parada] }}</i>
       </template>
     </EasyDataTable>
 
@@ -72,7 +73,7 @@ import R53Logo from '../components/lines/R53Logo.vue'
 import R60Logo from '../components/lines/R60Logo.vue'
 import R63Logo from '../components/lines/R63Logo.vue'
 // Utils
-import { stations } from "@/utils/stations"
+import { stations } from '@/utils/stations'
 
 const sortByRealtime = 'distance'
 const sortTypeRealtime: SortType = 'asc'
