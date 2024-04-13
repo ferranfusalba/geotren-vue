@@ -24,3 +24,13 @@ export const calcDistance = (
 
   return distanceInKilometers
 }
+
+export const renderScheduledDepartureTime = (time: string) => {
+  if (time[0] === '2' && time[1] === '4') {
+    return '00' + ':' + time[3] + time[4] + ':' + time[6] + time[7]
+  }
+  if (time[0] === '2' && time[1] === '5') {
+    return '01' + ':' + time[3] + time[4] + ':' + time[6] + time[7]
+  }
+  return time
+}

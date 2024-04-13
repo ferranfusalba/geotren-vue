@@ -64,6 +64,9 @@
       :rows-per-page="200"
       table-class-name="customize-table"
     >
+      <template #item-departure_time="item">{{
+        renderScheduledDepartureTime(item.departure_time)
+      }}</template>
       <template #item-route_short_name="item">
         <S4Logo v-if="item.route_short_name === 'S4'" />
         <S8Logo v-if="item.route_short_name === 'S8'" />
@@ -105,6 +108,7 @@ import R63Logo from '../components/lines/R63Logo.vue'
 import R6Logo from '../components/lines/R6Logo.vue'
 // Utils
 import { stations } from '@/utils/stations'
+import { renderScheduledDepartureTime } from '@/utils/utils'
 
 const sortByRealtimePEArrivals = 'distance'
 const sortTypeRealtimePEArrivals: SortType = 'asc'
