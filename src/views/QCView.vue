@@ -11,6 +11,9 @@
       :rows-per-page="200"
       table-class-name="customize-table"
     >
+      <template #item-departure_time="item">{{
+        renderScheduledDepartureTime(item.departure_time)
+      }}</template>
       <template #item-route_short_name="item">
         <R50Logo v-if="item.route_short_name === 'R50'" />
         <R53Logo v-if="item.route_short_name === 'R53'" />
@@ -46,6 +49,8 @@ import R60Logo from '../components/lines/R60Logo.vue'
 import R63Logo from '../components/lines/R63Logo.vue'
 import S4Logo from '../components/lines/S4Logo.vue'
 import S8Logo from '../components/lines/S8Logo.vue'
+// Utils
+import { renderScheduledDepartureTime } from '@/utils/utils'
 
 const sortBy = 'departure_time'
 const sortType: SortType = 'asc'
