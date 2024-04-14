@@ -6,7 +6,8 @@
       :sort-by="sortByRealtime"
       :sort-type="sortTypeRealtime"
       :hide-footer="true"
-      table-class-name="customize-table"
+      header-class-name="arrivals-table"
+      table-class-name="arrivals-table main-table"
       style="--6c2c1440: 0"
       :rows-per-page="5"
     >
@@ -34,7 +35,8 @@
       :sort-by="sortBySchedule"
       :sort-type="sortTypeSchedule"
       :rows-per-page="200"
-      table-class-name="customize-table"
+      header-class-name="departures-table"
+      table-class-name="main-table departures-table"
     >
       <template #item-departure_time="item">{{
         renderScheduledDepartureTime(item.departure_time)
@@ -93,7 +95,7 @@ const sortBySchedule = 'departure_time'
 const sortTypeSchedule: SortType = 'asc'
 const scheduleMCHeaders: Header[] = [
   { text: 'Departure', value: 'departure_time', sortable: false },
-  { text: 'Route', value: 'route_short_name' },
+  { text: 'Line', value: 'route_short_name' },
   { text: 'Left', value: 'left_str', width: 84 }
 ]
 
