@@ -9,7 +9,8 @@
       :sort-by="sortBy"
       :sort-type="sortType"
       :rows-per-page="200"
-      table-class-name="customize-table"
+      header-class-name="departures-table"
+      table-class-name="main-table departures-table"
     >
       <template #item-departure_time="item">{{
         renderScheduledDepartureTime(item.departure_time)
@@ -57,8 +58,8 @@ const sortType: SortType = 'asc'
 
 const scheduleQCHeaders: Header[] = [
   { text: 'Departure', value: 'departure_time', sortable: false },
-  { text: 'Route', value: 'route_short_name' },
-  { text: 'Sign', value: 'trip_headsign' },
+  { text: 'Line', value: 'route_short_name' },
+  { text: 'Destination', value: 'trip_headsign' },
   { text: 'Left', value: 'left_str', width: 84 }
 ]
 

@@ -6,7 +6,8 @@
       :sort-by="sortByRealtimePEArrivals"
       :sort-type="sortTypeRealtimePEArrivals"
       :hide-footer="true"
-      table-class-name="customize-table"
+      header-class-name="arrivals-table"
+      table-class-name="arrivals-table main-table"
       style="--6c2c1440: 0"
       :rows-per-page="4"
     >
@@ -34,7 +35,8 @@
       :headers="realTimePEDeparturesHeaders"
       :items="realTimePEDeparturesFields"
       :hide-footer="true"
-      table-class-name="customize-table"
+      header-class-name="stationed-table"
+      table-class-name="main-table stationed-table"
       style="--6c2c1440: 0"
     >
       <template #item-lin="item">
@@ -62,7 +64,8 @@
       :sort-by="sortBy"
       :sort-type="sortType"
       :rows-per-page="200"
-      table-class-name="customize-table"
+      header-class-name="departures-table"
+      table-class-name="main-table departures-table"
     >
       <template #item-departure_time="item">{{
         renderScheduledDepartureTime(item.departure_time)
@@ -130,7 +133,7 @@ const sortBy = 'departure_time'
 const sortType: SortType = 'asc'
 const schedulePEHeaders: Header[] = [
   { text: 'Departure', value: 'departure_time', sortable: false },
-  { text: 'Route', value: 'route_short_name' },
+  { text: 'Line', value: 'route_short_name' },
   { text: 'Left', value: 'left_str', width: 84 }
 ]
 
