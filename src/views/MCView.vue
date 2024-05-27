@@ -29,6 +29,8 @@
       </template>
     </EasyDataTable>
 
+    <button @click="fetcherMC()">Refresh</button>
+
     <EasyDataTable
       :headers="scheduleMCHeaders"
       :items="scheduleMCTimeFiltered"
@@ -108,6 +110,13 @@ const scheduleStore = useScheduleStore()
 const scheduleMCTimeFiltered = computed(() => {
   return scheduleStore.getScheduleMCTimeFiltered
 })
+
+const fetcherMC = () => {
+  realTimeStore.fetchRealTimeMC()
+  scheduleStore.fetchTime()
+  scheduleStore.fetchScheduleMC()
+  alert("MC data fetched")
+}
 
 onMounted(() => {
   realTimeStore.fetchRealTimeMC()
