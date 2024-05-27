@@ -64,14 +64,13 @@
 
 <script setup lang="ts">
 // Vue
-import { onMounted, computed, watchEffect } from 'vue'
+import { onMounted, computed } from 'vue'
 // Pinia Store
 import { useRealTimeStore } from '../stores/realtime'
 import { useScheduleStore } from '../stores/schedule'
 // Leaflet
 import "leaflet/dist/leaflet.css";
 import leaflet from "leaflet";
-import { useGeolocation } from "@vueuse/core"
 // Table
 import type { Header, SortType } from 'vue3-easy-data-table'
 // Components
@@ -91,8 +90,6 @@ import { renderScheduledDepartureTime } from '@/utils/utils'
 import { mcMarker } from '@/stores/mapStore';
 
 let map: leaflet.Map;
-let userGeoMarker: leaflet.Marker;
-const { coords } = useGeolocation();
 
 const sortByRealtime = 'distance'
 const sortTypeRealtime: SortType = 'asc'
@@ -133,6 +130,7 @@ onMounted(() => {
   realTimeStore.fetchRealTimeMC()
   scheduleStore.fetchTime()
   scheduleStore.fetchScheduleMC()
+
   map = leaflet.map("map").setView([mcMarker.value.latitude, mcMarker.value.longitude], 13);
 
   leaflet.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -140,21 +138,8 @@ onMounted(() => {
     attribution:
     '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map)
-})
 
-watchEffect(() => {
-  if (coords.value.latitude !== Number.POSITIVE_INFINITY && coords.value.longitude !== Number.POSITIVE_INFINITY) {
-    mcMarker.value.latitude = coords.value.latitude;
-    mcMarker.value.longitude = coords.value.longitude;
-
-    if (userGeoMarker) {
-      map.removeLayer(userGeoMarker);
-    }
-
-    userGeoMarker = leaflet.marker([mcMarker.value.latitude, mcMarker.value.longitude]).addTo(map);
-
-    map.setView([mcMarker.value.latitude, mcMarker.value.longitude], 13)
-  }
+  leaflet.marker([mcMarker.value.latitude, mcMarker.value.longitude]).addTo(map);
 })
 </script>
 
