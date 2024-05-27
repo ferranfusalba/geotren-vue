@@ -163,5 +163,9 @@ main {
   padding-bottom: 5.625rem;
   display: grid;
   gap: 4px;
+
+  picture {
+    min-height: 117px;
+  }
 }
 </style>
