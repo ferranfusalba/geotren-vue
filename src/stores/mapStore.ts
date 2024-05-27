@@ -1,11 +1,11 @@
 import { useLocalStorage } from '@vueuse/core'
 
-type Marker = {
+interface Marker {
   latitude: number
   longitude: number
 }
 
-export const mcMarker = useLocalStorage<Marker>('USER_MARKER', {
+export const mcMarker = useLocalStorage<Marker>('MC_MARKER', {
   latitude: 41.479388,
   longitude: 1.925974
 })
