@@ -29,7 +29,7 @@
       </template>
     </EasyDataTable>
 
-    <button @click="fetcherMC()">Refresh</button>
+    <button @click="fetcherRealtimeMC()">Refresh Realtime MC</button>
 
     <EasyDataTable
       :headers="scheduleMCHeaders"
@@ -62,7 +62,7 @@
 
 <script setup lang="ts">
 // Vue
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, onUnmounted } from 'vue'
 // Pinia Store
 import { useRealTimeStore } from '../stores/realtime'
 import { useScheduleStore } from '../stores/schedule'
@@ -111,17 +111,20 @@ const scheduleMCTimeFiltered = computed(() => {
   return scheduleStore.getScheduleMCTimeFiltered
 })
 
-const fetcherMC = () => {
+const fetcherRealtimeMC = () => {
+  realTimeStore.cleanRealtimeStoreMC()
   realTimeStore.fetchRealTimeMC()
-  scheduleStore.fetchTime()
-  scheduleStore.fetchScheduleMC()
-  alert("MC data fetched")
 }
 
 onMounted(() => {
   realTimeStore.fetchRealTimeMC()
   scheduleStore.fetchTime()
   scheduleStore.fetchScheduleMC()
+})
+
+onUnmounted(() => {
+  realTimeStore.cleanRealtimeStoreMC()
+  scheduleStore.cleanScheduledStoreMC()
 })
 </script>
 

@@ -93,6 +93,24 @@ export const useScheduleStore = defineStore('schedule', {
       const seconds = today.getSeconds() < 10 ? '0' + today.getSeconds() : today.getSeconds()
       const time = hours + ':' + minutes + ':' + seconds
       this.time = time
+    },
+    cleanScheduledStore() {
+      this.time = ''
+      this.scheduleMCTimeFiltered = []
+      this.scheduleQCTimeFiltered = []
+      this.schedulePETimeFiltered = []
+    },
+    cleanScheduledStoreMC() {
+      this.time = ''
+      this.scheduleMCTimeFiltered = []
+    },
+    cleanScheduledStoreQC() {
+      this.time = ''
+      this.scheduleQCTimeFiltered = []
+    },
+    cleanScheduledStorePE() {
+      this.time = ''
+      this.schedulePETimeFiltered = []
     }
   }
 })

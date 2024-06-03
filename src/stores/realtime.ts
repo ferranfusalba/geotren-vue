@@ -119,6 +119,20 @@ export const useRealTimeStore = defineStore('realTime', {
         alert(error)
         console.log(error)
       }
+    },
+    cleanRealtimeStore() {
+      this.realTimeMCFieldsPPCoords = []
+      this.realTimePEDeparturesFields = []
+      this.realTimePEArrivalsFieldsCoords = []
+    },
+    cleanRealtimeStoreMC() {
+      this.realTimeMCFieldsPPCoords = []
+    },
+    cleanRealtimeStorePEd() {
+      this.realTimePEDeparturesFields = []
+    },
+    cleanRealtimeStorePEa() {
+      this.realTimePEArrivalsFieldsCoords = []
     }
   }
 })
