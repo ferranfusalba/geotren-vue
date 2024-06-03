@@ -34,7 +34,7 @@
 
 <script setup lang="ts">
 // Vue
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, onUnmounted } from 'vue'
 // Pinia Store
 import { useScheduleStore } from '../stores/schedule'
 // Table
@@ -71,6 +71,10 @@ const scheduleQCTimeFiltered = computed(() => {
 onMounted(() => {
   scheduleStore.fetchTime()
   scheduleStore.fetchScheduleQC()
+})
+
+onUnmounted(() => {
+  scheduleStore.cleanScheduledStoreQC()
 })
 </script>
 

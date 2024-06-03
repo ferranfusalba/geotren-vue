@@ -55,9 +55,13 @@
         {{ stations[item.desti] }}
       </template>
     </EasyDataTable>
+
+    <button @click="fetcherRealtimePE()">Refresh Realtime MC</button>
+
     <picture>
       <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%" />
     </picture>
+
     <EasyDataTable
       :headers="schedulePEHeaders"
       :items="schedulePETimeFiltered"
@@ -89,7 +93,7 @@
 
 <script setup lang="ts">
 // Vue
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, onUnmounted } from 'vue'
 // Pinia Store
 import { useRealTimeStore } from '../stores/realtime'
 import { useScheduleStore } from '../stores/schedule'
@@ -150,11 +154,24 @@ const schedulePETimeFiltered = computed(() => {
   return scheduleStore.getSchedulePETimeFiltered
 })
 
+const fetcherRealtimePE = () => {
+  realTimeStore.cleanRealtimeStorePEd()
+  realTimeStore.cleanRealtimeStorePEa()
+  realTimeStore.fetchRealTimePEDepartures()
+  realTimeStore.fetchRealTimePEArrivals()
+}
+
 onMounted(() => {
   realTimeStore.fetchRealTimePEDepartures()
   realTimeStore.fetchRealTimePEArrivals()
   scheduleStore.fetchTime()
   scheduleStore.fetchSchedulePE()
+})
+
+onUnmounted(() => {
+  realTimeStore.cleanRealtimeStorePEd()
+  realTimeStore.cleanRealtimeStorePEa()
+  scheduleStore.cleanScheduledStorePE()
 })
 </script>
 
