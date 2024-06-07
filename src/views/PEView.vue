@@ -56,7 +56,7 @@
       </template>
     </EasyDataTable>
 
-    <button @click="fetcherRealtimePE()">Refresh Realtime MC</button>
+    <button @click="fetcherRealtimePE()">Refresh real-time PE</button>
 
     <picture>
       <embed type="image/png" src="https://geotren.fgc.cat/isic/pe" width="100%" />
@@ -180,6 +180,17 @@ main {
   padding-bottom: 5.625rem;
   display: grid;
   gap: 4px;
+
+  button {
+    border-radius: 1.5625rem;
+    border: none;
+    background-color: #51565c;
+    color: #FFF;
+
+    &:active {
+      box-shadow: -4px -4px 4px 0px rgba(0, 0, 0, 0.25) inset;
+    }
+  }
 
   picture {
     min-height: 117px;
