@@ -29,7 +29,7 @@
       </template>
     </EasyDataTable>
 
-    <button @click="fetcherRealtimeMC()">Refresh real-time MC</button>
+    <button @click="fetcherRealtimeMC()" class="refresh-real-time">Refresh real-time MC</button>
 
     <EasyDataTable
       :headers="scheduleMCHeaders"
@@ -127,18 +127,3 @@ onUnmounted(() => {
   scheduleStore.cleanScheduledStoreMC()
 })
 </script>
-
-<style scoped lang="scss">
-main {
-  button {
-    border-radius: 1.5625rem;
-    border: none;
-    background-color: #51565c;
-    color: #FFF;
-
-    &:active {
-      box-shadow: -4px -4px 4px 0px rgba(0, 0, 0, 0.25) inset;
-    }
-  }
-}
-</style>
