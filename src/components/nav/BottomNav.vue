@@ -17,11 +17,6 @@
 <script setup lang="ts"></script>
 
 <style scoped lang="scss">
-//
-/* --primary-color: #185ee0;
-  --secondary-color: #e6eef9; */
-//
-
 .container {
   display: flex;
   align-items: center;
@@ -30,6 +25,7 @@
   max-width: 480px;
   margin: 0 auto;
 }
+
 .tabs {
   display: flex;
   position: relative;
