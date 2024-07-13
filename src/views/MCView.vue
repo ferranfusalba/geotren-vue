@@ -1,5 +1,5 @@
 <template>
-  <main>
+  <main class="table-view-layout">
     <EasyDataTable
       :headers="realTimeMCHeaders"
       :items="realTimeMCFields"
@@ -130,10 +130,6 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 main {
-  padding-bottom: 5.625rem;
-  display: grid;
-  gap: 8px;
-
   button {
     border-radius: 1.5625rem;
     border: none;

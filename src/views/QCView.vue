@@ -1,5 +1,5 @@
 <template>
-  <main>
+  <main class="table-view-layout">
     <picture>
       <embed type="image/png" src="https://geotren.fgc.cat/isic/qc" width="100%" />
     </picture>
@@ -80,8 +80,6 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 main {
-  padding-bottom: 5.625rem;
-
   picture > *:nth-child(1) {
     min-height: 220px;
   }

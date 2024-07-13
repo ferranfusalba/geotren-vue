@@ -1,5 +1,5 @@
 <template>
-  <main>
+  <main class="table-view-layout">
     <EasyDataTable
       :headers="realTimePEArrivalsHeaders"
       :items="realTimePEArrivalsFieldsCoords"
@@ -177,10 +177,6 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 main {
-  padding-bottom: 5.625rem;
-  display: grid;
-  gap: 4px;
-
   button {
     border-radius: 1.5625rem;
     border: none;
