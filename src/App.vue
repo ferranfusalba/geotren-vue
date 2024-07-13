@@ -27,16 +27,6 @@ import { RouterLink, RouterView, useRoute } from 'vue-router'
 const route = useRoute()
 </script>
 
-<style>
-.table-view-layout {
-  padding-bottom: 5.625rem;
-  display: grid;
-  gap: 8px;
-  margin: 0 auto;
-  max-width: 480px;
-}
-</style>
-
 <style scoped lang="scss">
 footer {
   position: fixed;
@@ -50,7 +40,7 @@ footer {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     padding-bottom: 1.125rem;
-    background-color: #97d700;
+    background-color: var(--color-corporative-primary);
     align-items: center;
 
     div {
@@ -63,18 +53,23 @@ footer {
         align-items: center;
         text-decoration: none;
         height: 100%;
-        color: #51565c;
-        background-color: #97d700;
+        color: var(--color-corporative-secondary);
+        background-color: var(--color-corporative-primary);
         width: 80%;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+
         &.active {
-          background-color: #51565c;
+          background-color: var(--color-corporative-secondary);
           box-shadow: -4px -4px 4px 0px rgba(0, 0, 0, 0.25) inset;
-          color: white;
+          color: var(--color-white);
           border-radius: 1.5625rem;
           height: max-content;
         }
+
         &:not(.active) {
-          background-color: #97d700;
+          background-color: var(--color-corporative-primary);
         }
       }
     }

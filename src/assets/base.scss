@@ -19,6 +19,11 @@
   --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
   --vt-c-text-dark-1: var(--vt-c-white);
   --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+
+  // User variables
+  --color-corporative-primary: #97d700;
+  --color-corporative-secondary: #51565c;
+  --color-white: #ffffff;
 }
 
 /* semantic color variables for this project */
@@ -71,4 +76,27 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+main.table-view-layout {
+  padding-bottom: 5.625rem;
+  display: grid;
+  gap: 8px;
+  margin: 0 auto;
+  max-width: 480px;
+}
+
+button.refresh-real-time {
+  font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto,
+    Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', sans-serif;
+  font-weight: 500;
+  border-radius: 1.5625rem;
+  border: none;
+  background-color: var(--color-corporative-secondary);
+  color: var(--color-white);
+  padding: 4px 0;
+
+  &:active {
+    box-shadow: -4px -4px 4px 0px rgba(0, 0, 0, 0.25) inset;
+  }
 }
