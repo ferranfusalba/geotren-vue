@@ -27,6 +27,16 @@ import { RouterLink, RouterView, useRoute } from 'vue-router'
 const route = useRoute()
 </script>
 
+<style>
+.table-view-layout {
+  padding-bottom: 5.625rem;
+  display: grid;
+  gap: 8px;
+  margin: 0 auto;
+  max-width: 480px;
+}
+</style>
+
 <style scoped lang="scss">
 footer {
   position: fixed;
