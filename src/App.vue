@@ -17,12 +17,15 @@
         <RouterLink to="/pe" :class="{ active: route.path === '/pe' }">PE</RouterLink>
       </div>
     </nav>
+    <BottomNav />
   </footer>
 </template>
 
 <script setup lang="ts">
 // Vue Router
 import { RouterLink, RouterView, useRoute } from 'vue-router'
+// Components
+import BottomNav from './components/nav/BottomNav.vue'
 
 const route = useRoute()
 </script>
@@ -34,6 +37,8 @@ footer {
   display: flex;
   justify-content: center;
   width: 100vw;
+  //
+  flex-direction: column;
 
   nav {
     height: 5.625rem;
@@ -42,6 +47,8 @@ footer {
     padding-bottom: 1.125rem;
     background-color: var(--color-corporative-primary);
     align-items: center;
+    max-width: 480px;
+    margin: 0 auto;
 
     div {
       display: flex;
