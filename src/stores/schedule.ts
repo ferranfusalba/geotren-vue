@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import type { Fields, ScheduleRecordsItem } from '@/types/schedule'
+import type { Fields } from '@/types/schedule'
 
 export const useScheduleStore = defineStore('schedule', {
   state: () => ({
@@ -23,15 +23,13 @@ export const useScheduleStore = defineStore('schedule', {
   actions: {
     async fetchScheduleMC() {
       try {
-        // config url: https://fgc.opendatasoft.com/explore/dataset/viajes-de-hoy/api/?rows=500&sort=&dataChart=eyJxdWVyaWVzIjpbeyJjb25maWciOnsiZGF0YXNldCI6InZpYWplcy1kZS1ob3kiLCJvcHRpb25zIjp7fX0sImNoYXJ0cyI6W3siYWxpZ25Nb250aCI6dHJ1ZSwidHlwZSI6ImxpbmUiLCJmdW5jIjoiQVZHIiwieUF4aXMiOiJleGNlcHRpb25fdHlwZSIsInNjaWVudGlmaWNEaXNwbGF5Ijp0cnVlLCJjb2xvciI6IiM2NmMyYTUifV0sInhBeGlzIjoiZGF0ZSIsIm1heHBvaW50cyI6IiIsInRpbWVzY2FsZSI6InllYXIiLCJzb3J0IjoiIn1dLCJkaXNwbGF5TGVnZW5kIjp0cnVlLCJhbGlnbk1vbnRoIjp0cnVlfQ%3D%3D&refine.stop_id=MC&exclude.route_short_name=L8&exclude.route_short_name=S3&exclude.route_short_name=S9&exclude.route_short_name=RL1&exclude.route_short_name=RL2&exclude.route_short_name=S1&exclude.route_short_name=S2&exclude.route_short_name=L6&exclude.route_short_name=L7&exclude.route_short_name=FV&exclude.route_short_name=L12&exclude.trip_headsign=Montserrat&exclude.trip_headsign=Ribes-Enlla%C3%A7&exclude.trip_headsign=Nuria&exclude.trip_headsign=Monistrol+de+Montserrat&exclude.trip_headsign=Monistrol-Vila&exclude.trip_headsign=Manresa-Baixador&exclude.trip_headsign=Igualada&exclude.trip_headsign=Olesa+de+Montserrat&exclude.trip_headsign=Martorell+Enlla%C3%A7
         const data = await axios.get(
-          'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=viajes-de-hoy&q=&rows=500&facet=route_short_name&refine.stop_id=MC&exclude.trip_headsign=Manresa-Baixador&exclude.trip_headsign=Igualada&exclude.trip_headsign=Olesa+de+Montserrat&exclude.trip_headsign=Martorell+Enlla%C3%A7'
+          'https://fgc.opendatasoft.com/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?limit=100&refine=stop_id%3AMC&refine=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya'
         )
 
-        const dataRecords = data.data.records
-        const fields = dataRecords.map((x: ScheduleRecordsItem) => x['fields'])
+        const dataResults = data.data.results
 
-        this.scheduleMCTimeFiltered = fields
+        this.scheduleMCTimeFiltered = dataResults
           .map((x: Fields) => {
             if ((x['departure_time'] as string) >= this.time) {
               return x
@@ -46,13 +44,12 @@ export const useScheduleStore = defineStore('schedule', {
     async fetchScheduleQC() {
       try {
         const data = await axios.get(
-          'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=viajes-de-hoy&q=&rows=500&facet=route_short_name&refine.stop_id=QC&exclude.trip_headsign=Pl.+Espanya&exclude.route_short_name=S9'
+          'https://fgc.opendatasoft.com/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?where=stop_id%20%3D%20%22QC%22%20and%20route_short_name%20!%3D%20%22S9%22%20and%20trip_headsign%20!%3D%20%22Barcelona%20-%20Pla%C3%A7a%20Espanya%22&limit=100'
         )
 
-        const dataRecords = data.data.records
-        const fields = dataRecords.map((x: ScheduleRecordsItem) => x['fields'])
+        const dataResults = data.data.results
 
-        this.scheduleQCTimeFiltered = fields
+        this.scheduleQCTimeFiltered = dataResults
           .map((x: Fields) => {
             if ((x['departure_time'] as string) >= this.time) {
               return x
@@ -66,15 +63,13 @@ export const useScheduleStore = defineStore('schedule', {
     },
     async fetchSchedulePE() {
       try {
-        // config url: https://fgc.opendatasoft.com/explore/dataset/viajes-de-hoy/api/?rows=500&sort=&refine.stop_id=PE&exclude.route_short_name=L8&exclude.route_short_name=S3&exclude.route_short_name=S9&exclude.route_short_name=RL1&exclude.route_short_name=RL2&exclude.route_short_name=S1&exclude.route_short_name=S2&exclude.route_short_name=L6&exclude.route_short_name=L7&exclude.route_short_name=FV&exclude.route_short_name=L12&exclude.trip_headsign=Pl.+Espanya&exclude.trip_headsign=Montserrat&exclude.trip_headsign=Ribes-Enlla%C3%A7&exclude.trip_headsign=Nuria&exclude.trip_headsign=Monistrol+de+Montserrat&exclude.trip_headsign=Monistrol-Vila&dataChart=eyJxdWVyaWVzIjpbeyJjb25maWciOnsiZGF0YXNldCI6InZpYWplcy1kZS1ob3kiLCJvcHRpb25zIjp7fX0sImNoYXJ0cyI6W3siYWxpZ25Nb250aCI6dHJ1ZSwidHlwZSI6ImxpbmUiLCJmdW5jIjoiQVZHIiwieUF4aXMiOiJleGNlcHRpb25fdHlwZSIsInNjaWVudGlmaWNEaXNwbGF5Ijp0cnVlLCJjb2xvciI6IiM2NmMyYTUifV0sInhBeGlzIjoiZGF0ZSIsIm1heHBvaW50cyI6IiIsInRpbWVzY2FsZSI6InllYXIiLCJzb3J0IjoiIn1dLCJkaXNwbGF5TGVnZW5kIjp0cnVlLCJhbGlnbk1vbnRoIjp0cnVlfQ%3D%3D
         const data = await axios.get(
-          'https://fgc.opendatasoft.com/api/records/1.0/search/?dataset=viajes-de-hoy&q=&rows=500&refine.stop_id=PE&exclude.route_short_name=L8&exclude.route_short_name=S3&exclude.route_short_name=S9&exclude.trip_headsign=Pl.+Espanya'
+          'https://fgc.opendatasoft.com/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?where=stop_id%20%3D%20%22PE%22%20and%20route_short_name%20!%3D%20%22L8%22%20and%20route_short_name%20!%3D%20%22S3%22%20and%20route_short_name%20!%3D%20%22S9%22%20and%20trip_headsign%20!%3D%20%22Barcelona%20-%20Pla%C3%A7a%20Espanya%22&limit=100'
         )
 
-        const dataRecords = data.data.records
-        const fields = dataRecords.map((x: ScheduleRecordsItem) => x['fields'])
+        const dataResults = data.data.results
 
-        this.schedulePETimeFiltered = fields
+        this.schedulePETimeFiltered = dataResults
           .map((x: Fields) => {
             if ((x['departure_time'] as string) >= this.time) {
               return x
