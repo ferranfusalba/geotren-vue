@@ -19,10 +19,3 @@ export interface Fields {
   trip_headsign: string
   wheelchair_boarding: number
 }
-
-export interface ScheduleRecordsItem {
-  datasetid: string
-  fields: Fields
-  record_timestamp: string
-  recordid: string
-}
