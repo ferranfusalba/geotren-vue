@@ -24,7 +24,7 @@ export const useScheduleStore = defineStore('schedule', {
     async fetchScheduleMC() {
       try {
         const data = await axios.get(
-          'https://fgc.opendatasoft.com/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?limit=100&refine=stop_id%3AMC&refine=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya'
+          'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?limit=100&refine=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya&refine=parent_station%3AMC'
         )
 
         const dataResults = data.data.results
@@ -44,7 +44,7 @@ export const useScheduleStore = defineStore('schedule', {
     async fetchScheduleQC() {
       try {
         const data = await axios.get(
-          'https://fgc.opendatasoft.com/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?where=stop_id%20%3D%20%22QC%22%20and%20route_short_name%20!%3D%20%22S9%22%20and%20trip_headsign%20!%3D%20%22Barcelona%20-%20Pla%C3%A7a%20Espanya%22&limit=100'
+          'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?limit=100&refine=parent_station%3AQC&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya'
         )
 
         const dataResults = data.data.results
@@ -64,7 +64,7 @@ export const useScheduleStore = defineStore('schedule', {
     async fetchSchedulePE() {
       try {
         const data = await axios.get(
-          'https://fgc.opendatasoft.com/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?where=stop_id%20%3D%20%22PE%22%20and%20route_short_name%20!%3D%20%22L8%22%20and%20route_short_name%20!%3D%20%22S3%22%20and%20route_short_name%20!%3D%20%22S9%22%20and%20trip_headsign%20!%3D%20%22Barcelona%20-%20Pla%C3%A7a%20Espanya%22&limit=100'
+          'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?limit=100&refine=parent_station%3APE&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya&exclude=route_short_name%3AL8&exclude=route_short_name%3AS3&exclude=route_short_name%3AS9'
         )
 
         const dataResults = data.data.results
