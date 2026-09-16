@@ -20,6 +20,8 @@ export interface Fields {
   wheelchair_boarding: number
 }
 
+import type { TimetableTrip } from '@/data/fgcTimetable'
+
 /** Where a scheduled row came from: the live API, or the printed FGC poster. */
 export type ScheduleRowSource = 'api' | 'timetable'
 
@@ -31,4 +33,10 @@ export type MergedScheduleRow = Partial<Fields> & {
   departure_time: string
   route_short_name: string
   source: ScheduleRowSource
+  /**
+   * The printed trip this row matched, where one was found. The API answers only
+   * for the station it was asked about, so this is the sole way to know when the
+   * same train reaches anywhere else.
+   */
+  trip?: TimetableTrip
 }

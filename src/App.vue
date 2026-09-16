@@ -11,6 +11,9 @@
         <RouterLink to="/mc" :class="{ active: route.path === '/mc' }">MC</RouterLink>
       </div>
       <div>
+        <RouterLink to="/qc" :class="{ active: route.path === '/qc' }">QC</RouterLink>
+      </div>
+      <div>
         <RouterLink to="/fm" :class="{ active: route.path === '/fm' }">FM</RouterLink>
       </div>
       <div>
@@ -38,7 +41,7 @@ footer {
   nav {
     height: 5.625rem;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     padding-bottom: 1.125rem;
     background-color: var(--color-corporative-primary);
     align-items: center;

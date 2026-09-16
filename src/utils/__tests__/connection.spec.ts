@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest'
 
 import { E8_STOPS, type E8Trip } from '@/data/e8Timetable'
+import { TIMETABLE_STATIONS, type TimetableTrip } from '@/data/fgcTimetable'
 import type { MergedScheduleRow } from '@/types/schedule'
-import { pairE8WithTrains, TRANSFER_MINUTES } from '@/utils/connection'
+import { pairE8WithTrains, pairTrainsWithE8, TRANSFER_MINUTES } from '@/utils/connection'
 import { toTimeString } from '@/utils/timetable'
 
 const FM = E8_STOPS.indexOf('FM')
@@ -147,5 +148,82 @@ describe('pairE8WithTrains', () => {
     const rows = pairE8WithTrains([bus('23:40', '24:00')], [train('24:05')])
 
     expect(rows[0].e8?.slack).toBe(5)
+  })
+})
+
+/** A train leaving Martorell Central and reaching Quatre Camins. */
+const trainVia = (departure: string, qc: string): MergedScheduleRow => {
+  const stops: (number | null)[] = new Array(TIMETABLE_STATIONS.length).fill(null)
+  stops[TIMETABLE_STATIONS.indexOf('MC')] = at(departure)
+  stops[TIMETABLE_STATIONS.indexOf('QC')] = at(qc)
+  return { ...train(departure), trip: { stops, line: 'S8' } as TimetableTrip }
+}
+
+/** A bus leaving Quatre Camins for Francesc Macia. */
+const onward = (departure: string, arrival: string, opts: Partial<E8Trip> = {}): E8Trip => {
+  const stops: (number | null)[] = new Array(E8_STOPS.length).fill(null)
+  stops[QC] = at(departure)
+  stops[FM] = at(arrival)
+  return { ...opts, stops }
+}
+
+describe('pairTrainsWithE8', () => {
+  it('gives each train the bus it hands you to', () => {
+    const rows = pairTrainsWithE8(
+      [trainVia('09:00', '09:20'), trainVia('09:30', '09:50')],
+      [onward('09:25', '09:50'), onward('09:55', '10:20')]
+    )
+
+    expect(rows.map((r) => r.bus?.departure)).toEqual([at('09:25'), at('09:55')])
+    expect(rows.map((r) => r.bus?.slack)).toEqual([5, 5])
+  })
+
+  it('lets two trains share a bus, which is the point of the wait', () => {
+    // More trains than buses, so several reach the same one. Showing it on every
+    // row is what makes the wait comparable between them.
+    const rows = pairTrainsWithE8(
+      [trainVia('09:00', '09:20'), trainVia('09:10', '09:30')],
+      [onward('09:40', '10:05')]
+    )
+
+    expect(rows.map((r) => r.bus?.departure)).toEqual([at('09:40'), at('09:40')])
+    expect(rows.map((r) => r.bus?.slack)).toEqual([20, 10])
+  })
+
+  it('will not offer a change it is impossible to make', () => {
+    const rows = pairTrainsWithE8([trainVia('09:00', '09:20')], [onward('09:21', '09:46')])
+
+    expect(rows[0].bus).toBeUndefined()
+    expect(rows[0].qc).toBe(at('09:20'))
+  })
+
+  it('takes exactly the transfer margin', () => {
+    const rows = pairTrainsWithE8([trainVia('09:00', '09:20')], [onward('09:22', '09:47')])
+
+    expect(rows[0].bus?.slack).toBe(TRANSFER_MINUTES)
+  })
+
+  it('leaves the last trains of the night without a bus', () => {
+    const rows = pairTrainsWithE8([trainVia('23:40', '24:00')], [onward('09:25', '09:50')])
+
+    expect(rows[0].bus).toBeUndefined()
+  })
+
+  it('drops a train it cannot place at Quatre Camins', () => {
+    // Without a printed trip there is no way to know when it gets there, so
+    // there is nothing to connect it to.
+    const rows = pairTrainsWithE8([train('09:00')], [onward('09:25', '09:50')])
+
+    expect(rows).toHaveLength(0)
+  })
+
+  it('reports the Molins detour and the school-term flag', () => {
+    const viaMolins = onward('09:25', '09:55', { schoolDaysOnly: true })
+    viaMolins.stops[E8_STOPS.indexOf('MOLINS')] = at('09:35')
+
+    const rows = pairTrainsWithE8([trainVia('09:00', '09:20')], [viaMolins])
+
+    expect(rows[0].bus?.viaMolins).toBe(true)
+    expect(rows[0].bus?.schoolDaysOnly).toBe(true)
   })
 })

@@ -58,7 +58,10 @@ export const POPULATIONS = {
   // parent_station=QC, headsign != Pl. Espanya. Narrowed further to trains that
   // reach Martorell Central, since this view exists to get you there: three
   // trains a day terminate at Quatre Camins and are no use.
-  QC_TO_MC: { station: 'QC', direction: 'outbound', calling: ['QC', 'MC'] }
+  QC_TO_MC: { station: 'QC', direction: 'outbound', calling: ['QC', 'MC'] },
+  // The same query as MC, sliced differently: the onward journey changes at
+  // Quatre Camins, so the handful of trains that run past it are no use.
+  MC_TO_QC: { station: 'MC', direction: 'inbound', calling: ['MC', 'QC'] }
 } satisfies Record<string, TripPopulation>
 
 /**
