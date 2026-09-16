@@ -167,7 +167,7 @@ const main = async () => {
     }
 
     timetable[table.dayType] ??= {}
-    timetable[table.dayType][table.direction] = rows.map((row) => toTrip(row, table, key))
+    timetable[table.dayType][table.direction] = toTrips(rows, table, key)
     console.log(
       `${key.padEnd(30)} ${String(rows.length).padStart(3)} expeditions  ` +
         FLAGS.map((f) => `${f}:${timetable[table.dayType][table.direction].filter((t) => t[f]).length}`).join('  ')
@@ -259,6 +259,38 @@ const attachBadges = (rows, badges, table, key) => {
     }
     row.flags.add(badge.name === 'shared' ? table.sharedBadge : badge.name)
   }
+}
+
+/**
+ * Reading down a column of a timetable, times only ever increase. Quatre Camins
+ * is the stop every expedition calls at, so it is the column the day rollover is
+ * keyed on.
+ *
+ * Without this, a row printed entirely after midnight — the Saturday night runs
+ * at 0.15 and 2.15 — is internally monotonic, so nothing inside it looks like a
+ * rollover and it lands at 38 minutes past midnight instead of 24.38, sorting to
+ * the top of the table and pairing with the wrong trains.
+ */
+const toTrips = (rows, table, key) => {
+  const reference = STOPS.indexOf(REFERENCE_STOP)
+  let dayOffset = 0
+  let previous = -1
+
+  return rows.map((row, index) => {
+    const trip = toTrip(row, table, key)
+    const marker = trip.stops[reference]
+
+    if (marker + dayOffset < previous) dayOffset += 24 * 60
+    previous = marker + dayOffset
+
+    if (dayOffset) {
+      trip.stops = trip.stops.map((value) => (value === null ? null : value + dayOffset))
+    }
+    if (index > 0 && trip.stops[reference] > 48 * 60) {
+      fail(`${key}: row ${index + 1} lands beyond a second midnight`)
+    }
+    return trip
+  })
 }
 
 /**
