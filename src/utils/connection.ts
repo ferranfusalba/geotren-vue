@@ -48,16 +48,29 @@ export interface OnwardBus {
 export interface OnwardRow extends MergedScheduleRow {
   /** When this train reaches Quatre Camins, off the printed timetable. */
   qc: number
+  /** Only on the last train that can still catch it. */
   bus?: OnwardBus
+  /**
+   * The wait at Quatre Camins for the next bus, on every train that has one.
+   *
+   * On a train that does not carry the bus it is the cost of taking this one
+   * anyway: the bus is printed further down, against the last train that reaches
+   * it, and this is how long you would stand about having caught this one.
+   */
+  wait?: number
 }
 
 /**
  * The mirror of pairE8WithTrains, for the journey out to Barcelona.
  *
  * Here the train comes first, so the rows are trains and each carries the bus it
- * connects with. Unlike the inbound view a bus can appear on more than one row,
- * and that is the useful part: with more trains than buses, several trains reach
- * the same one and the wait is what tells them apart.
+ * connects with. With more trains than buses several trains reach the same one,
+ * and the bus is printed against the last of them — the one you would actually
+ * aim for, since the earlier ones only buy you a longer wait at Quatre Camins.
+ * The others keep the wait alone, which is what that choice costs:
+ *
+ *     FGC 9:33 -> QC 9:47  +14                 <- nothing; the 9:43 does as well
+ *     FGC 9:43 -> QC 9:56   +5 | e8 10:01
  *
  * A train with no printed trip is dropped: without it there is no way to know
  * when it reaches Quatre Camins, so there is nothing to connect.
@@ -74,27 +87,43 @@ export const pairTrainsWithE8 = (trains: MergedScheduleRow[], trips: E8Trip[]): 
     .filter((trip) => trip.stops[busQc] !== null && trip.stops[fm] !== null)
     .sort((a, b) => a.stops[busQc]! - b.stops[busQc]!)
 
-  return trains
+  /** A row plus the bus it could catch, before deciding which row keeps it. */
+  type Placed = OnwardRow & { next?: E8Trip }
+
+  const placed: Placed[] = trains
     .filter((train) => train.trip)
     .map((train) => {
       const arrival = departureAt(train.trip!, 'QC')
       if (arrival === null) return null
 
       const trip = buses.find((bus) => bus.stops[busQc]! - arrival >= TRANSFER_MINUTES)
-      const row: OnwardRow = { ...train, qc: arrival }
+      const row: Placed = { ...train, qc: arrival }
       if (trip) {
-        row.bus = {
-          departure: trip.stops[busQc]!,
-          arrival: trip.stops[fm]!,
-          viaMolins: trip.stops[molins] !== null,
-          slack: trip.stops[busQc]! - arrival,
-          schoolDaysOnly: Boolean(trip.schoolDaysOnly)
-        }
+        row.wait = trip.stops[busQc]! - arrival
+        row.next = trip
       }
       return row
     })
-    .filter((row): row is OnwardRow => row !== null)
+    .filter((row): row is Placed => row !== null)
     .sort((a, b) => toMinutes(a.departure_time) - toMinutes(b.departure_time))
+
+  // The later a train leaves, the later it arrives, so the trains sharing a bus
+  // are always a run of neighbours and the last of them is the one that keeps it.
+  return placed.map((row, index): OnwardRow => {
+    const { next, ...rest } = row
+    if (!next || placed[index + 1]?.next === next) return rest
+
+    return {
+      ...rest,
+      bus: {
+        departure: next.stops[busQc]!,
+        arrival: next.stops[fm]!,
+        viaMolins: next.stops[molins] !== null,
+        slack: row.wait!,
+        schoolDaysOnly: Boolean(next.schoolDaysOnly)
+      }
+    }
+  })
 }
 
 /**

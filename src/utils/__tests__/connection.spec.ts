@@ -176,24 +176,49 @@ describe('pairTrainsWithE8', () => {
 
     expect(rows.map((r) => r.bus?.departure)).toEqual([at('09:25'), at('09:55')])
     expect(rows.map((r) => r.bus?.slack)).toEqual([5, 5])
+    expect(rows.map((r) => r.wait)).toEqual([5, 5])
   })
 
-  it('lets two trains share a bus, which is the point of the wait', () => {
-    // More trains than buses, so several reach the same one. Showing it on every
-    // row is what makes the wait comparable between them.
+  it('gives a shared bus to the last train that can catch it', () => {
+    // More trains than buses, so several reach the same one. Only the last of
+    // them is worth aiming for; the earlier ones would only wait longer.
     const rows = pairTrainsWithE8(
       [trainVia('09:00', '09:20'), trainVia('09:10', '09:30')],
       [onward('09:40', '10:05')]
     )
 
-    expect(rows.map((r) => r.bus?.departure)).toEqual([at('09:40'), at('09:40')])
-    expect(rows.map((r) => r.bus?.slack)).toEqual([20, 10])
+    expect(rows.map((r) => r.bus?.departure)).toEqual([undefined, at('09:40')])
+    expect(rows.map((r) => r.wait)).toEqual([20, 10])
+  })
+
+  it('keeps the wait on a train whose bus is printed further down', () => {
+    // The 9:33 reaches the same bus as the 9:43, so the bus rides with the 9:43
+    // and the 9:33 keeps only what taking it would cost: fourteen minutes at QC.
+    const rows = pairTrainsWithE8(
+      [trainVia('09:33', '09:47'), trainVia('09:43', '09:56')],
+      [onward('10:01', '10:30')]
+    )
+
+    expect(rows[0].bus).toBeUndefined()
+    expect(rows[0].wait).toBe(14)
+    expect(rows[1].bus?.departure).toBe(at('10:01'))
+    expect(rows[1].wait).toBe(5)
+  })
+
+  it('gives each bus to its own last train when there are several', () => {
+    const rows = pairTrainsWithE8(
+      [trainVia('09:00', '09:20'), trainVia('09:10', '09:30'), trainVia('09:40', '10:00')],
+      [onward('09:40', '10:05'), onward('10:10', '10:35')]
+    )
+
+    expect(rows.map((r) => r.bus?.departure)).toEqual([undefined, at('09:40'), at('10:10')])
   })
 
   it('will not offer a change it is impossible to make', () => {
     const rows = pairTrainsWithE8([trainVia('09:00', '09:20')], [onward('09:21', '09:46')])
 
     expect(rows[0].bus).toBeUndefined()
+    expect(rows[0].wait).toBeUndefined()
     expect(rows[0].qc).toBe(at('09:20'))
   })
 

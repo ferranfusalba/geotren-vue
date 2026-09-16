@@ -55,13 +55,16 @@
 
       <!-- Where the train drops you, and how long you then stand about. The three
            bus cells tint together when the run takes the Molins detour. -->
+      <!-- The wait shows on every train that has a bus ahead of it, including the
+           ones whose bus is printed further down: it is what taking this train
+           instead of the later one would cost you. -->
       <template #item-qc="item">
         <span
           class="arrival"
-          :class="item.bus && item.bus.slack < COMFORTABLE_MINUTES ? 'tight' : 'roomy'"
+          :class="item.wait !== undefined && item.wait < COMFORTABLE_MINUTES ? 'tight' : 'roomy'"
         >
           <span class="clock">{{ toClock(item.qc) }}</span>
-          <i v-if="item.bus">+{{ item.bus.slack }}</i>
+          <i v-if="item.wait !== undefined">+{{ item.wait }}</i>
         </span>
       </template>
       <template #item-busDeparture="item">
