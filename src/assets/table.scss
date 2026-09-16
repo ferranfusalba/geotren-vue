@@ -112,10 +112,12 @@
     .roomy {
       color: inherit;
     }
-    // The three e8 columns tint the whole cell, so those cells give up their own
-    // padding and the content takes it over. Bleeding out with a negative margin
-    // instead would leave the band short of the row's full height.
-    tbody tr:not(.earlier-row) td:nth-child(-n + 3) {
+    // A cell carrying either of these hands its padding to the content, so the
+    // tint fills the row instead of leaving a frame of table around it. Keyed on
+    // what the cell holds rather than which column it is: the two connection
+    // views put the bus on opposite sides of the table.
+    tbody td:has(.e8-cell),
+    tbody td:has(.arrival) {
       padding: 0;
     }
 

@@ -17,8 +17,8 @@ export const crossCheckSchedule = (
 ): MergedScheduleRow[] => {
   const candidates = trips
     .map((trip) => ({ trip, minute: departureAt(trip, station) }))
-    .filter((candidate): candidate is { trip: TimetableTrip; minute: number } =>
-      candidate.minute !== null
+    .filter(
+      (candidate): candidate is { trip: TimetableTrip; minute: number } => candidate.minute !== null
     )
     .sort((a, b) => a.minute - b.minute)
 
@@ -46,7 +46,7 @@ export const crossCheckSchedule = (
     })
 
     if (best !== -1) claimed.add(best)
-    return { ...row, source: 'api' as const }
+    return { ...row, source: 'api' as const, trip: best === -1 ? undefined : candidates[best].trip }
   })
 
   const fromTimetable: MergedScheduleRow[] = candidates
@@ -55,7 +55,8 @@ export const crossCheckSchedule = (
       departure_time: toTimeString(minute),
       arrival_time: toTimeString(minute),
       route_short_name: trip.line ?? '',
-      source: 'timetable' as const
+      source: 'timetable' as const,
+      trip
     }))
 
   return [...fromApi, ...fromTimetable].sort((a, b) =>

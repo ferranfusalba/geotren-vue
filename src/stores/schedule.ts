@@ -34,12 +34,16 @@ export const useScheduleStore = defineStore('schedule', {
     /** The pattern the API's own data matched today; the e8 calendar is checked against it. */
     dayType: 'weekday' as DayType,
     scheduleMC: [] as MergedScheduleRow[],
+    scheduleMCtoQC: [] as MergedScheduleRow[],
     scheduleQC: [] as MergedScheduleRow[],
     schedulePE: [] as MergedScheduleRow[]
   }),
   getters: {
     getScheduleMC(state) {
       return state.scheduleMC
+    },
+    getScheduleMCtoQC(state) {
+      return state.scheduleMCtoQC
     },
     getScheduleQC(state) {
       return state.scheduleQC
@@ -64,6 +68,15 @@ export const useScheduleStore = defineStore('schedule', {
         // The whole service day is kept: the API returns it anyway, and the view
         // decides whether to show the trains that have already gone.
         this.scheduleMC = crossCheckSchedule(dataResults, trips, POPULATIONS.MC.station)
+
+        // One query, two slices: the onward journey to Francesc Macia changes at
+        // Quatre Camins, so it drops the few trains that run past without
+        // stopping. A row with no printed trip cannot be placed there at all.
+        this.scheduleMCtoQC = crossCheckSchedule(
+          dataResults,
+          tripsFor(dayType, POPULATIONS.MC_TO_QC),
+          POPULATIONS.MC_TO_QC.station
+        ).filter((row) => row.trip)
       } catch (error) {
         alert(error)
         console.log(error)
@@ -120,12 +133,14 @@ export const useScheduleStore = defineStore('schedule', {
     cleanScheduledStore() {
       this.time = ''
       this.scheduleMC = []
+      this.scheduleMCtoQC = []
       this.scheduleQC = []
       this.schedulePE = []
     },
     cleanScheduledStoreMC() {
       this.time = ''
       this.scheduleMC = []
+      this.scheduleMCtoQC = []
     },
     cleanScheduledStoreQC() {
       this.time = ''
