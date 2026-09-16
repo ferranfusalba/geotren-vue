@@ -1,5 +1,5 @@
 <template>
-  <main class="table-view-layout">
+  <main class="table-view-layout" :class="{ 'with-schedule-type': scheduleNotice }">
     <p v-if="calendarStale" class="calendar-warning">
       The calendar says today is
       {{ e8DayType(new Date()) === 'weekday' ? 'an ordinary weekday' : 'a holiday' }}, but FGC is
@@ -93,6 +93,10 @@
         <span v-else>&mdash;</span>
       </template>
     </EasyDataTable>
+
+    <p v-if="scheduleNotice" class="schedule-type" :class="`tone-${scheduleNotice.tone}`">
+      {{ scheduleNotice.label }}
+    </p>
   </main>
 </template>
 
@@ -120,7 +124,7 @@ import S8Logo from '../components/lines/S8Logo.vue'
 // Utils
 import { e8DayType } from '@/data/calendar'
 import { COMFORTABLE_MINUTES, pairE8WithTrains, type ConnectionRow } from '@/utils/connection'
-import { calendarDisagreesWithFgc, e8TripsFor } from '@/utils/e8'
+import { calendarDisagreesWithFgc, e8ScheduleNotice, e8TripsFor } from '@/utils/e8'
 import { toTimeString } from '@/utils/timetable'
 import { renderScheduledDepartureTime } from '@/utils/utils'
 
@@ -146,8 +150,14 @@ const scheduleStore = useScheduleStore()
 
 // The bus is matched against the whole day of trains, then the table trims it,
 // so a connection does not appear or vanish depending on what is on screen.
+// Named only when it is not the ordinary school weekday, so the line appearing
+// at all is itself the signal that today runs something different.
+const scheduleNotice = computed(() => e8ScheduleNotice())
+
+const runningToday = computed(() => e8TripsFor('fromBarcelona'))
+
 const connections = computed(() =>
-  pairE8WithTrains(e8TripsFor('fromBarcelona'), scheduleStore.getScheduleQC)
+  pairE8WithTrains(runningToday.value, scheduleStore.getScheduleQC)
 )
 
 const calendarStale = computed(() => calendarDisagreesWithFgc(scheduleStore.dayType))
@@ -158,7 +168,9 @@ const { rows, showEarlier, hiddenEarlierCount, hasDeparted, isRecentlyDeparted, 
   useScheduleTable(
     connections,
     computed(() => scheduleStore.time),
-    { anchor: (row) => row.e8 !== undefined }
+    {
+      anchor: (row) => row.e8 !== undefined
+    }
   )
 
 onMounted(() => {
@@ -176,6 +188,39 @@ main {
   picture > *:nth-child(1) {
     min-height: 220px;
   }
+}
+
+// Says which printed timetable the rows came from, since two ordinary weekdays
+// can differ once the school calendar is taken into account. Pinned above the
+// nav so it is on screen wherever you are in the day, not only at the very end.
+.schedule-type {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 5.625rem;
+  z-index: 1;
+  margin: 0;
+  padding: 8px 12px;
+  background-color: var(--color-background);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+// The colours the poster prints its own section headings in.
+.tone-weekday {
+  color: #8dc73f;
+}
+.tone-saturday {
+  color: #ee3124;
+}
+.tone-holiday {
+  color: #f7941d;
+}
+
+// Room for it, on top of the room the layout already leaves for the nav.
+main.with-schedule-type {
+  padding-bottom: calc(5.625rem + 32px);
 }
 
 .calendar-warning {
