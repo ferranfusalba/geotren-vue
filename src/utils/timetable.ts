@@ -1,4 +1,4 @@
-import { isHoliday } from '@/data/calendar'
+import { isHoliday, runsFridayEve } from '@/data/calendar'
 import {
   fgcTimetable,
   TIMETABLE_STATIONS,
@@ -67,17 +67,26 @@ export const POPULATIONS = {
 /**
  * A station counts as called at only if the poster prints a real time there — a
  * '|' means the train passes through without stopping.
+ *
+ * `date` is the service day being asked about. The poster's Ⓤ trips only run on
+ * working Fridays and on working days before a holiday, so on any other day they
+ * are not part of the population at all — counting them would make the API look
+ * as though it had dropped four trains. Omit it and every printed trip is
+ * returned, which is what a question about the timetable itself wants.
  */
-export const tripsFor = (dayType: DayType, population: TripPopulation) => {
+export const tripsFor = (dayType: DayType, population: TripPopulation, date?: Date) => {
   const indexes = population.calling.map(stationIndex)
   if (indexes.some((index) => index === -1)) {
     throw new Error(`Unknown station in ${population.calling.join(', ')}`)
   }
 
+  const fridayEve = date ? runsFridayEve(date) : true
+
   return fgcTimetable[dayType][population.direction].filter(
     (trip) =>
       indexes.every((index) => trip.stops[index] !== null) &&
-      !population.excludingLines?.includes(trip.line as string)
+      !population.excludingLines?.includes(trip.line as string) &&
+      (fridayEve || !trip.fridayEve)
   )
 }
 
@@ -105,7 +114,7 @@ export const detectDayType = (
   for (const dayType of DAY_TYPES) {
     // Scored against the same slice the view compares, so lines the query
     // excludes cannot dilute the match.
-    const printed = tripsFor(dayType, population)
+    const printed = tripsFor(dayType, population, today)
       .map((trip) => departureAt(trip, population.station))
       .filter((minute): minute is number => minute !== null)
 

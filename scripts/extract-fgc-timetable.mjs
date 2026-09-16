@@ -15,8 +15,9 @@
  * is what lets us read the line (S4/S8/R5/...) off the Scr03 symbol glyphs.
  */
 import { execFileSync } from 'node:child_process'
-import { writeFileSync } from 'node:fs'
-import { resolve, relative } from 'node:path'
+import { readFileSync, writeFileSync, unlinkSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve, relative } from 'node:path'
 
 // Station order of the outbound (Pl. Espanya -> Martorell) table. The inbound
 // table prints the same 22 columns in reverse; we re-index it onto this order so
@@ -26,12 +27,30 @@ const STATIONS = [
   'CG', 'CL', 'VH', 'CR', 'QC', 'PA', 'SA', 'PL', 'MV', 'MC', 'ME'
 ]
 
+// The poster's page box, in PDF points; the render is scaled against it.
+const PAGE_WIDTH = 623
+
 // Column centres, in PDF points. Both tables share this grid.
 const COLUMN_X = STATIONS.map((_, i) => 58 + i * 25.78)
 const COLUMN_TOLERANCE = 10
 // Rows sit ~6.28pt apart; cells of one row vary by <2pt because glyph tops differ.
 const ROW_TOLERANCE = 2
 const MARKER_TOLERANCE = 3
+
+/**
+ * The Ⓤ badge ("runs on Fridays and on working days before a holiday") is drawn
+ * as vector artwork in the margin left of the line roundel, so it leaves nothing
+ * in the text layer — the same situation as the S3/S9 roundels. It is recovered
+ * by rendering the page and looking for its ink in that margin.
+ *
+ * The strip stops short of the roundels at x=21.3 so a dark R6 roundel cannot be
+ * mistaken for a badge, and the legend's own Ⓤ sits below the last row, far
+ * enough that BADGE_TOLERANCE will not bind it to one.
+ */
+const BADGE_STRIP = { from: 8, to: 18 }
+const BADGE_TOLERANCE = 3
+const BADGE_INK = 100
+const RENDER_DPI = 150
 
 // The Scr03 symbol font renders a line roundel per row. Glyph -> line, confirmed
 // against the glyph colours, src/assets/lines/*.svg, and the live API's own
@@ -47,7 +66,26 @@ const LINE_BY_GLYPH = { s: 'S8', a: 'R5', d: 'R6', j: 'S4', b: 'R50', e: 'R60' }
  */
 const LINE_BY_TERMINUS = { CR: 'S3', QC: 'S9' }
 
+/**
+ * The same roundels read off the render, by the colour they are drawn in. This
+ * is what LINE_BY_TERMINUS cannot do: the Ⓤ trips run the whole line, so where
+ * they end says nothing, and only their colour identifies them as S8.
+ *
+ * Sampled from the poster itself. Where both rules have an opinion they are
+ * required to agree, so each keeps the other honest.
+ */
+const LINE_BY_ROUNDEL = [
+  { rgb: [60, 185, 219], line: 'S8' },
+  { rgb: [79, 132, 136], line: 'S3' },
+  { rgb: [231, 68, 95], line: 'S9' }
+]
+// Comfortably tighter than the gap between any two of the colours above.
+const ROUNDEL_TOLERANCE = 40
+// The roundel sits between the badge margin and the first time column.
+const ROUNDEL_STRIP = { from: 21, to: 38 }
+
 const DIRECTION_HEADER = /^(Barcelona-Pl\. Espanya|Martorell) D /
+const FRIDAY_EVE_LEGEND = /Circula els divendres feiners i els dies feiners vig/
 const BAND_CAPTIONS = [
   { dayTypes: ['augustWeekday'], re: /^Feiners del mes d.{1,8}agost de/ },
   { dayTypes: ['saturdayHoliday'], re: /^Dissabtes i festius de/ },
@@ -108,6 +146,96 @@ const readPage = (pdfPath, page) => {
 }
 
 /**
+ * Reads what the page draws rather than what it writes: the Ⓤ badges, whose y
+ * positions come back in PDF points, and the colour of any roundel, for the
+ * lines drawn as vector artwork and so absent from the text layer.
+ *
+ * The legend's own badge comes back among the badges — it simply matches no row.
+ */
+const readRender = (pdfPath, page) => {
+  const ppmPath = join(tmpdir(), `fgc-page-${page}-${process.pid}.ppm`)
+  execFileSync(
+    'mutool',
+    ['draw', '-F', 'ppm', '-r', String(RENDER_DPI), '-o', ppmPath, pdfPath, String(page)],
+    { stdio: ['ignore', 'ignore', 'ignore'] }
+  )
+
+  const ppm = readFileSync(ppmPath)
+  unlinkSync(ppmPath)
+
+  // P6: magic, "width height", maxval, then three bytes per pixel.
+  const header = ppm.subarray(0, 64).toString('latin1').split(/\s+/)
+  if (header[0] !== 'P6') fail(`page ${page}: mutool did not render a colour PPM`)
+  const width = Number(header[1])
+  const height = Number(header[2])
+  const start = ppm.indexOf(10, ppm.indexOf(10, ppm.indexOf(10) + 1) + 1) + 1
+  const scale = width / PAGE_WIDTH
+
+  const at = (x, y) => {
+    const i = start + (y * width + x) * 3
+    return [ppm[i], ppm[i + 1], ppm[i + 2]]
+  }
+
+  const inked = []
+  for (let y = 0; y < height; y += 1) {
+    for (let x = Math.round(BADGE_STRIP.from * scale); x < Math.round(BADGE_STRIP.to * scale); x += 1) {
+      const [r, g, b] = at(x, y)
+      if ((r + g + b) / 3 < BADGE_INK) {
+        inked.push(y)
+        break
+      }
+    }
+  }
+
+  const badges = []
+  let run = null
+  for (const y of inked) {
+    if (run && y - run.to <= 2) run.to = y
+    else {
+      if (run) badges.push((run.from + run.to) / 2 / scale)
+      run = { from: y, to: y }
+    }
+  }
+  if (run) badges.push((run.from + run.to) / 2 / scale)
+
+  /**
+   * The line a row's roundel is drawn in, or null.
+   *
+   * Greys are skipped so the roundel's own outline and the ruled lines cannot
+   * outvote its fill; what is left is the most common coloured pixel in the
+   * strip, matched against the sampled roundel colours.
+   */
+  const roundelLine = (rowY) => {
+    const counts = new Map()
+    for (let y = Math.round((rowY - 1) * scale); y < Math.round((rowY + 4) * scale); y += 1) {
+      if (y < 0 || y >= height) continue
+      for (let x = Math.round(ROUNDEL_STRIP.from * scale); x < Math.round(ROUNDEL_STRIP.to * scale); x += 1) {
+        const pixel = at(x, y)
+        if (Math.max(...pixel) - Math.min(...pixel) < 25) continue
+        const key = pixel.join(',')
+        counts.set(key, (counts.get(key) ?? 0) + 1)
+      }
+    }
+
+    let dominant = null
+    for (const [key, count] of counts) {
+      if (!dominant || count > dominant.count) dominant = { key, count }
+    }
+    if (!dominant) return null
+
+    const rgb = dominant.key.split(',').map(Number)
+    const match = LINE_BY_ROUNDEL.map((candidate) => ({
+      line: candidate.line,
+      distance: Math.hypot(...candidate.rgb.map((value, i) => value - rgb[i]))
+    })).sort((a, b) => a.distance - b.distance)[0]
+
+    return match.distance <= ROUNDEL_TOLERANCE ? { line: match.line, rgb } : { line: null, rgb }
+  }
+
+  return { badges, roundelLine }
+}
+
+/**
  * Groups the H.MM / '|' cells of a page into rows on the 22-column grid.
  * Returns rows ordered top to bottom, each { y, cells, line }.
  */
@@ -115,7 +243,8 @@ const readRows = ({ lines, markers }) => {
   const rows = []
 
   for (const { x0, x1, y, text } of lines) {
-    if (!/^(\d{1,2}\.\d{2}|\|)$/.test(text)) continue
+    // The Ⓤ rows print their times with a colon rather than a dot; both are cells.
+    if (!/^(\d{1,2}[.:]\d{2}|\|)$/.test(text)) continue
 
     const centre = (x0 + x1) / 2
     let column = 0
@@ -132,6 +261,7 @@ const readRows = ({ lines, markers }) => {
       rows.push(row)
     }
     row.cells[column] = text
+    if (text.includes(':')) row.colon = true
   }
 
   rows.sort((a, b) => a.y - b.y)
@@ -160,7 +290,7 @@ const toServiceMinutes = (cells, { reversed, label, row }) => {
   cells.forEach((cell, index) => {
     if (!cell || cell === '|') return
 
-    const [hours, minutes] = cell.split('.').map(Number)
+    const [hours, minutes] = cell.split(/[.:]/).map(Number)
     let value = hours * 60 + minutes
     // A train leaving at 23.55 and arriving at 0.13 is still the same service day,
     // but no single stop should ever need more than one day's worth of carry.
@@ -224,24 +354,98 @@ const buildTrips = (rows, { reversed, label }) => {
     previous = marker + dayOffset
 
     const shifted = stops.map((value) => (value === null ? null : value + dayOffset))
-    return { stops: shifted, line: row.line ?? lineFromTerminus(shifted, label, index + 1) }
+    return {
+      stops: shifted,
+      line: row.line ?? lineWithoutGlyph(shifted, row.roundel, label, index + 1),
+      fridayEve: row.fridayEve === true
+    }
   })
 }
 
-/** Recovers the line of a trip whose roundel is vector artwork, from where it ends. */
-const lineFromTerminus = (stops, label, row) => {
+/**
+ * Recovers the line of a trip whose roundel is vector artwork, from the colour
+ * it is drawn in and from where the trip ends.
+ *
+ * Either signal alone would do for most rows, but neither covers all of them:
+ * the terminus rule cannot speak for a trip that runs the whole line, and a
+ * colour the poster has not used before is unknown to us. Where both have an
+ * opinion they must agree.
+ */
+const lineWithoutGlyph = (stops, roundel, label, row) => {
   const called = stops.map((value, index) => (value === null ? null : index)).filter((i) => i !== null)
   const ends = [STATIONS[called[0]], STATIONS[called[called.length - 1]]]
-  const line = ends.map((station) => LINE_BY_TERMINUS[station]).find(Boolean)
+  const byTerminus = ends.map((station) => LINE_BY_TERMINUS[station]).find(Boolean) ?? null
+  const byColour = roundel?.line ?? null
 
+  if (byTerminus && byColour && byTerminus !== byColour) {
+    fail(
+      `${label}: row ${row} runs ${ends[0]}..${ends[1]}, which reads as ${byTerminus}, ` +
+        `but its roundel is drawn in ${byColour}'s colour. Check the poster.`
+    )
+  }
+
+  const line = byColour ?? byTerminus
   if (!line) {
     fail(
-      `${label}: row ${row} has no line roundel in the text layer and runs ` +
-        `${ends[0]}..${ends[1]}, which is not a known vector-artwork line. ` +
-        `Check the poster — a new line may need adding to LINE_BY_TERMINUS.`
+      `${label}: row ${row} has no line roundel in the text layer, runs ` +
+        `${ends[0]}..${ends[1]} and is drawn in rgb(${roundel?.rgb ?? '?'}), which matches ` +
+        `neither LINE_BY_TERMINUS nor LINE_BY_ROUNDEL. Check the poster — a new line ` +
+        `may need adding.`
     )
   }
   return line
+}
+
+/** Only rows whose roundel left nothing in the text layer need the render read. */
+const attachRoundels = (rows, render) => {
+  for (const row of rows) {
+    if (!row.line) row.roundel = render.roundelLine(row.y)
+  }
+}
+
+/**
+ * Attaches the Ⓤ flag to the rows that carry the badge.
+ *
+ * The badges are read off the render, but the poster also prints those rows'
+ * times with a colon instead of a dot. Two independent signals for the same
+ * fact, so they are required to agree: if a future poster drops the colon or
+ * moves the badge, this fails rather than quietly losing four trains — which is
+ * how the colon cost us those trains in the first place.
+ */
+const markFridayEve = (rows, badges, lines, page) => {
+  const matched = new Set()
+
+  for (const badge of badges) {
+    let nearest = null
+    for (const row of rows) {
+      const distance = Math.abs(row.y - badge)
+      if (distance < BADGE_TOLERANCE && (!nearest || distance < Math.abs(nearest.y - badge))) {
+        nearest = row
+      }
+    }
+    // Badges that match nothing are the legend's own, printed below the table.
+    if (nearest) {
+      if (matched.has(nearest)) fail(`page ${page}: two badges land on the row at y=${nearest.y}`)
+      nearest.fridayEve = true
+      matched.add(nearest)
+    }
+  }
+
+  const byColon = rows.filter((row) => row.colon)
+  const byBadge = [...matched]
+  if (byColon.length !== byBadge.length || byColon.some((row) => !matched.has(row))) {
+    fail(
+      `page ${page}: ${byBadge.length} row(s) carry the Ⓤ badge but ${byColon.length} print ` +
+        `their times with a colon. The poster layout has probably changed.`
+    )
+  }
+
+  const hasLegend = lines.some((line) => FRIDAY_EVE_LEGEND.test(line.text))
+  if (byBadge.length > 0 && !hasLegend) {
+    fail(`page ${page}: rows carry the Ⓤ badge but the page prints no legend for it`)
+  }
+
+  return byBadge.length
 }
 
 /** Splits a page's rows into its two direction tables. */
@@ -324,7 +528,11 @@ const main = () => {
   // Page 1 is the plain weekday timetable; page 2 is banded by day type.
   const page1 = readPage(pdfPath, 1)
   const rows1 = readRows(page1)
+  const render1 = readRender(pdfPath, 1)
+  const flagged1 = markFridayEve(rows1, render1.badges, page1.lines, 1)
+  attachRoundels(rows1, render1)
   const split1 = splitDirections(rows1, page1.lines, 1)
+  console.log(`page 1 ${String(flagged1).padStart(11)} trips run only on Fridays and eves of holidays`)
 
   for (const direction of ['outbound', 'inbound']) {
     const trips = buildTrips(split1[direction], {
@@ -337,6 +545,11 @@ const main = () => {
 
   const page2 = readPage(pdfPath, 2)
   const rows2 = readRows(page2)
+  // "Fridays and eves of holidays" is a weekday idea, so page 2 should carry no
+  // badge at all; markFridayEve says so rather than us assuming it.
+  const render2 = readRender(pdfPath, 2)
+  markFridayEve(rows2, render2.badges, page2.lines, 2)
+  attachRoundels(rows2, render2)
   const split2 = splitDirections(rows2, page2.lines, 2)
 
   for (const direction of ['outbound', 'inbound']) {
@@ -376,7 +589,8 @@ const main = () => {
 }
 
 const renderTrip = (trip) =>
-  `  { line: ${trip.line ? `'${trip.line}'` : 'null'}, stops: [${trip.stops
+  `  { line: ${trip.line ? `'${trip.line}'` : 'null'}, ` +
+  `${trip.fridayEve ? 'fridayEve: true, ' : ''}stops: [${trip.stops
     .map((value) => (value === null ? 'n' : value))
     .join(', ')}] }`
 
@@ -425,6 +639,13 @@ export interface TimetableTrip {
    * they are recovered from where the trip ends (Can Ros / Quatre Camins).
    */
   line: TimetableLine | null
+  /**
+   * The poster's Ⓤ: "Circula els divendres feiners i els dies feiners vigílies
+   * de festius" — it runs on working Fridays and on working days before a
+   * holiday, not on every weekday. These are all small-hours trips, so the day
+   * they belong to is the service day, not the calendar date they depart on.
+   */
+  fridayEve?: true
 }
 
 const n = null

@@ -75,7 +75,7 @@ const run = async () => {
     // Exactly what the app does to pick today's timetable.
     const dayType = detectDayType(apiTimes, check.population)
 
-    const printed = tripsFor(dayType, check.population)
+    const printed = tripsFor(dayType, check.population, new Date())
       .map((trip) => departureAt(trip, check.population.station))
       .sort((a, b) => a - b)
 

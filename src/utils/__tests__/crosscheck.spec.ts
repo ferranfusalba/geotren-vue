@@ -26,15 +26,15 @@ describe('tripsFor', () => {
   it('narrows the poster to the population the MC query asks for', () => {
     // The poster covers the whole Pl. Espanya <-> Martorell segment; the MC query
     // only asks for trains calling at MC on their way to Pl. Espanya.
-    expect(fgcTimetable.weekday.inbound).toHaveLength(149)
-    expect(tripsFor('weekday', POPULATIONS.MC)).toHaveLength(123)
+    expect(fgcTimetable.weekday.inbound).toHaveLength(151)
+    expect(tripsFor('weekday', POPULATIONS.MC)).toHaveLength(125)
   })
 
   it('narrows the poster to the population the PE query asks for', () => {
     // The PE query excludes L8/S3/S9, so the poster must drop them too — otherwise
     // every S3 and S9 short working would be reported as a missing train.
-    expect(fgcTimetable.weekday.outbound).toHaveLength(148)
-    expect(tripsFor('weekday', POPULATIONS.PE)).toHaveLength(122)
+    expect(fgcTimetable.weekday.outbound).toHaveLength(150)
+    expect(tripsFor('weekday', POPULATIONS.PE)).toHaveLength(124)
   })
 
   it('excludes trains that do not call at the station', () => {
@@ -54,6 +54,33 @@ describe('tripsFor', () => {
     // ...and those lines really are in the unfiltered table, so this is not vacuous.
     const present = fgcTimetable.weekday.outbound.filter((trip) => trip.line === 'S3')
     expect(present.length).toBeGreaterThan(0)
+  })
+
+  it('drops the Ⓤ trips on a day they do not run', () => {
+    const monday = new Date(2026, 8, 14)
+    const friday = new Date(2026, 8, 18)
+
+    // Two of them call at MC on their way in; both are S8s in the small hours.
+    const printed = tripsFor('weekday', POPULATIONS.MC)
+    const flagged = printed.filter((trip) => trip.fridayEve)
+    expect(flagged).toHaveLength(2)
+
+    expect(tripsFor('weekday', POPULATIONS.MC, friday)).toHaveLength(printed.length)
+    expect(tripsFor('weekday', POPULATIONS.MC, monday)).toHaveLength(printed.length - 2)
+    for (const trip of flagged) {
+      expect(tripsFor('weekday', POPULATIONS.MC, monday)).not.toContain(trip)
+    }
+  })
+
+  it('keeps the Ⓤ trips on a working day before a holiday', () => {
+    // 11 September is Catalonia's national day; the Thursday before it counts.
+    const eve = new Date(2026, 8, 10)
+    const ordinaryThursday = new Date(2026, 8, 17)
+
+    expect(tripsFor('weekday', POPULATIONS.PE, eve).some((trip) => trip.fridayEve)).toBe(true)
+    expect(tripsFor('weekday', POPULATIONS.PE, ordinaryThursday).some((trip) => trip.fridayEve)).toBe(
+      false
+    )
   })
 
   it('rejects an unknown station rather than silently matching nothing', () => {
@@ -124,7 +151,7 @@ describe('crossCheckSchedule', () => {
     const merged = crossCheckSchedule([], outbound, 'PE')
 
     const last = merged[merged.length - 1].departure_time
-    expect(last).toBe('24:00:00')
+    expect(last).toBe('25:20:00')
     expect(merged.map((row) => row.departure_time)).toEqual(
       [...merged.map((row) => row.departure_time)].sort()
     )

@@ -59,11 +59,14 @@ export const useScheduleStore = defineStore('schedule', {
           'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?refine=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya&refine=parent_station%3AMC'
         )
 
+        // Today's service day: the poster's Ⓤ trips only run on some of them.
+        const today = new Date()
+
         // The query asks for trains calling at MC on their way to Pl. Espanya, so
         // the poster is narrowed to the same population before the two are diffed.
         const apiTimes = dataResults.map((x) => toMinutes(x.departure_time))
         const dayType = detectDayType(apiTimes, POPULATIONS.MC)
-        const trips = tripsFor(dayType, POPULATIONS.MC)
+        const trips = tripsFor(dayType, POPULATIONS.MC, today)
 
         // The whole service day is kept: the API returns it anyway, and the view
         // decides whether to show the trains that have already gone.
@@ -74,7 +77,7 @@ export const useScheduleStore = defineStore('schedule', {
         // stopping. A row with no printed trip cannot be placed there at all.
         this.scheduleMCtoQC = crossCheckSchedule(
           dataResults,
-          tripsFor(dayType, POPULATIONS.MC_TO_QC),
+          tripsFor(dayType, POPULATIONS.MC_TO_QC, today),
           POPULATIONS.MC_TO_QC.station
         ).filter((row) => row.trip)
       } catch (error) {
@@ -88,11 +91,13 @@ export const useScheduleStore = defineStore('schedule', {
           'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?refine=parent_station%3AQC&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya'
         )
 
+        const today = new Date()
+
         // Narrowed to trains that go on to Martorell Central; the three that
         // terminate at Quatre Camins are dropped rather than flagged as missing.
         const apiTimes = dataResults.map((x) => toMinutes(x.departure_time))
         this.dayType = detectDayType(apiTimes, POPULATIONS.QC_TO_MC)
-        const trips = tripsFor(this.dayType, POPULATIONS.QC_TO_MC)
+        const trips = tripsFor(this.dayType, POPULATIONS.QC_TO_MC, today)
 
         this.scheduleQC = crossCheckSchedule(
           dataResults.filter((x) => x.trip_headsign !== 'Quatre Camins'),
@@ -110,11 +115,13 @@ export const useScheduleStore = defineStore('schedule', {
           'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?refine=parent_station%3APE&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya&exclude=route_short_name%3AL8&exclude=route_short_name%3AS3&exclude=route_short_name%3AS9'
         )
 
+        const today = new Date()
+
         // POPULATIONS.PE mirrors the exclusions above, so the poster is narrowed
         // to the same trains before the two are diffed.
         const apiTimes = dataResults.map((x) => toMinutes(x.departure_time))
         const dayType = detectDayType(apiTimes, POPULATIONS.PE)
-        const trips = tripsFor(dayType, POPULATIONS.PE)
+        const trips = tripsFor(dayType, POPULATIONS.PE, today)
 
         this.schedulePE = crossCheckSchedule(dataResults, trips, POPULATIONS.PE.station)
       } catch (error) {

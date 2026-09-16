@@ -114,6 +114,23 @@ export const isHoliday = (date: Date) =>
   FIXED_HOLIDAYS.includes(iso(date).slice(5)) ||
   easterHolidays(date.getFullYear()).includes(iso(date))
 
+/** A weekday that is not a public holiday — the poster's "feiner". */
+export const isWorkingDay = (date: Date) =>
+  date.getDay() !== 0 && date.getDay() !== 6 && !isHoliday(date)
+
+/**
+ * Whether the FGC poster's Ⓤ trips run: "Circula els divendres feiners i els
+ * dies feiners vigílies de festius".
+ *
+ * They are small-hours trips, so the date is the service day they belong to —
+ * the Friday you board on, not the Saturday you arrive on.
+ *
+ * A Saturday is not a festiu, so the eve rule only ever adds working days before
+ * a public holiday; the eve of a Sunday is a Saturday, which is not feiner.
+ */
+export const runsFridayEve = (date: Date) =>
+  isWorkingDay(date) && (date.getDay() === 5 || isHoliday(shift(date, 1)))
+
 /** One of the three days the e8 runs its reduced Christmas service. */
 export const isChristmasService = (date: Date) => CHRISTMAS_DATES.includes(iso(date).slice(5))
 

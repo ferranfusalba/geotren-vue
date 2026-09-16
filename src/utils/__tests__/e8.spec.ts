@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { e8DayType, isHoliday, isSchoolDay } from '@/data/calendar'
+import { e8DayType, isHoliday, isSchoolDay, runsFridayEve } from '@/data/calendar'
 import { E8_STOPS, e8Timetable } from '@/data/e8Timetable'
 import {
   calendarDisagreesWithFgc,
@@ -48,6 +48,26 @@ describe('e8DayType', () => {
   it('keeps the local holidays the council lists', () => {
     expect(isHoliday(date(2026, 9, 24))).toBe(true) // La Mercè
     expect(isHoliday(date(2026, 6, 24))).toBe(true) // Sant Joan
+  })
+})
+
+describe('runsFridayEve', () => {
+  it('runs on a working Friday', () => {
+    expect(runsFridayEve(date(2026, 9, 18))).toBe(true)
+  })
+
+  it('runs on a working day before a holiday', () => {
+    // 11 September 2026 is a Friday holiday, so the Thursday before it is an eve
+    // — and the holiday itself is not a feiner, so it runs nothing.
+    expect(runsFridayEve(date(2026, 9, 10))).toBe(true)
+    expect(runsFridayEve(date(2026, 9, 11))).toBe(false)
+  })
+
+  it('does not run on an ordinary weekday, a weekend or a holiday', () => {
+    expect(runsFridayEve(date(2026, 9, 16))).toBe(false)
+    expect(runsFridayEve(date(2026, 9, 19))).toBe(false)
+    expect(runsFridayEve(date(2026, 9, 20))).toBe(false)
+    expect(runsFridayEve(date(2026, 12, 25))).toBe(false)
   })
 })
 
