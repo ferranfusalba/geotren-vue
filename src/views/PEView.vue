@@ -70,13 +70,13 @@
       :rows-per-page="200"
       header-class-name="departures-table"
       table-class-name="main-table departures-table"
-      :body-row-class-name="scheduleRowClass"
+      :body-row-class-name="rowClass"
     >
-      <template #body-prepend v-if="departedCount">
+      <template #body-prepend v-if="hiddenEarlierCount">
         <tr class="earlier-row">
           <td :colspan="schedulePEHeaders.length">
             <button @click="showEarlier = !showEarlier" class="toggle-earlier">
-              {{ showEarlier ? 'Hide' : 'Show' }} {{ departedCount }} earlier trains
+              {{ showEarlier ? 'Hide' : 'Show' }} {{ hiddenEarlierCount }} earlier trains
             </button>
           </td>
         </tr>
@@ -102,6 +102,10 @@
           v-if="!hasDeparted(item)"
           :departure_time="item.departure_time"
         ></CountdownCell>
+        <ElapsedCell
+          v-else-if="isRecentlyDeparted(item)"
+          :departure_time="item.departure_time"
+        ></ElapsedCell>
         <span v-else>&mdash;</span>
       </template>
     </EasyDataTable>
@@ -110,16 +114,17 @@
 
 <script setup lang="ts">
 // Vue
-import { onMounted, computed, onUnmounted, ref } from 'vue'
+import { onMounted, computed, onUnmounted } from 'vue'
 // Pinia Store
 import { useRealTimeStore } from '../stores/realtime'
 import { useScheduleStore } from '../stores/schedule'
 // Table
 import type { Header, SortType } from 'vue3-easy-data-table'
-// Types
-import type { MergedScheduleRow } from '@/types/schedule'
+// Composables
+import { useScheduleTable } from '@/composables/useScheduleTable'
 // Components
 import CountdownCell from '../components/countdown/CountdownCell.vue'
+import ElapsedCell from '../components/countdown/ElapsedCell.vue'
 // Assets
 import L8Logo from '../components/lines/L8Logo.vue'
 import S3Logo from '../components/lines/S3Logo.vue'
@@ -170,25 +175,19 @@ const realTimePEArrivalsFieldsCoords = computed(() => {
 
 const scheduleStore = useScheduleStore()
 
-// The store keeps the whole service day; by default the table starts at the next
-// train, with the ones already gone a button away.
-const showEarlier = ref(false)
-
-const hasDeparted = (item: MergedScheduleRow) => item.departure_time < scheduleStore.time
-
-const schedulePE = computed(() => scheduleStore.getSchedulePE)
-const departedCount = computed(() => schedulePE.value.filter(hasDeparted).length)
-const schedulePERows = computed(() =>
-  showEarlier.value ? schedulePE.value : schedulePE.value.filter((item) => !hasDeparted(item))
+// The store keeps the whole service day; the table shows what is still catchable
+// plus the handful that just went, and the rest is a click away.
+const {
+  rows: schedulePERows,
+  showEarlier,
+  hiddenEarlierCount,
+  hasDeparted,
+  isRecentlyDeparted,
+  rowClass
+} = useScheduleTable(
+  computed(() => scheduleStore.getSchedulePE),
+  computed(() => scheduleStore.time)
 )
-
-// 'row-missing': the API never reported it and it came off the printed timetable,
-// painted so a gap in the open data is visible rather than silent.
-// 'row-departed': already gone, dimmed so it cannot be mistaken for a train to catch.
-const scheduleRowClass = (item: MergedScheduleRow) =>
-  [item.source === 'timetable' ? 'row-missing' : '', hasDeparted(item) ? 'row-departed' : '']
-    .filter(Boolean)
-    .join(' ')
 
 const fetcherRealtimePE = () => {
   realTimeStore.cleanRealtimeStorePEd()
