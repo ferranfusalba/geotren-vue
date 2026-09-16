@@ -93,7 +93,8 @@ main.table-view-layout {
   display: flex;
 }
 
-button.refresh-real-time {
+button.refresh-real-time,
+button.panel-toggle {
   font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto,
     Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', sans-serif;
   font-weight: 500;
