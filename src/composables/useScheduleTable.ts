@@ -10,7 +10,7 @@ import type { MergedScheduleRow } from '@/types/schedule'
  * the table while still sitting in the arrivals list above. Keeping the last few
  * on screen covers that, and the near miss you might still be able to catch.
  */
-export const RECENTLY_DEPARTED = 3
+export const RECENTLY_DEPARTED = 2
 
 export interface ScheduleTableOptions<T extends MergedScheduleRow> {
   /**
