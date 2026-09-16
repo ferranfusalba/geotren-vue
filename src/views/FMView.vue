@@ -7,7 +7,15 @@
       service. The bus times below may be wrong — check src/data/calendar.ts.
     </p>
 
-    <picture>
+    <button
+      class="panel-toggle refresh-real-time"
+      :aria-expanded="showPanel"
+      @click="showPanel = !showPanel"
+    >
+      QC exits <span aria-hidden="true">{{ showPanel ? '▴' : '▾' }}</span>
+    </button>
+    <!-- Only mounted when opened, so the board is not fetched on every visit. -->
+    <picture v-if="showPanel">
       <embed type="image/png" src="https://geotren.fgc.cat/isic/qc" width="100%" />
     </picture>
 
@@ -104,7 +112,7 @@
 
 <script setup lang="ts">
 // Vue
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 // Pinia Store
 import { useScheduleStore } from '../stores/schedule'
 // Table
@@ -150,6 +158,10 @@ const toClock = (minutes: number) => toTimeString(minutes).slice(0, 5)
 /** The bus can be gone while its train is still worth showing. */
 const hasBusGone = (row: ConnectionRow) =>
   row.e8 !== undefined && toTimeString(row.e8.departure) < scheduleStore.time
+
+// The FGC board is a live image and the tallest thing on the page; folded away
+// by default so the connections are what you land on.
+const showPanel = ref(false)
 
 const scheduleStore = useScheduleStore()
 
