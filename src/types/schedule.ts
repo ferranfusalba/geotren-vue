@@ -22,8 +22,14 @@ export interface Fields {
 
 import type { TimetableTrip } from '@/data/fgcTimetable'
 
-/** Where a scheduled row came from: the live API, or the printed FGC poster. */
-export type ScheduleRowSource = 'api' | 'timetable'
+/**
+ * Where a scheduled row came from.
+ *
+ * 'timetable' means the live feed should have reported it and did not, which is
+ * worth painting. 'posted' means there is no feed for that date at all — the
+ * printed timetable is the only source, so nothing is missing from anything.
+ */
+export type ScheduleRowSource = 'api' | 'timetable' | 'posted'
 
 /**
  * A scheduled departure ready for the table. Rows recovered from the poster fill

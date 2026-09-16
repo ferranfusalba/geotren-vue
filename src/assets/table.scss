@@ -35,6 +35,12 @@
     --easy-table-border: 8px solid #fedf4b;
   }
 
+  // The header cells are sticky too, at the same z-index as a day selector above
+  // them, and being later in the document they would paint over it as it sticks.
+  .day-selector + &.departures-table thead th {
+    z-index: 1;
+  }
+
   --easy-table-border: none;
   --easy-table-row-border: 1px solid #ffffff;
 

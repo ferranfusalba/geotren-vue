@@ -28,9 +28,13 @@ const fetchAllPages = async (url: string): Promise<Fields[]> => {
   return results
 }
 
+/** Which day the tables are showing. The feed only answers for today. */
+export type ScheduleDay = 'today' | 'tomorrow'
+
 export const useScheduleStore = defineStore('schedule', {
   state: () => ({
     time: '',
+    day: 'today' as ScheduleDay,
     /** The pattern the API's own data matched today; the e8 calendar is checked against it. */
     dayType: 'weekday' as DayType,
     scheduleMC: [] as MergedScheduleRow[],
@@ -136,6 +140,9 @@ export const useScheduleStore = defineStore('schedule', {
       const seconds = today.getSeconds() < 10 ? '0' + today.getSeconds() : today.getSeconds()
       const time = hours + ':' + minutes + ':' + seconds
       this.time = time
+    },
+    setDay(day: ScheduleDay) {
+      this.day = day
     },
     cleanScheduledStore() {
       this.time = ''

@@ -31,6 +31,8 @@
 
     <button @click="fetcherRealtimeMC()" class="refresh-real-time">Refresh real-time MC</button>
 
+    <DaySelector v-model="day" />
+
     <EasyDataTable
       :headers="scheduleMCHeaders"
       :items="scheduleMCRows"
@@ -92,6 +94,7 @@ import type { Header, SortType } from 'vue3-easy-data-table'
 // Composables
 import { useScheduleTable } from '@/composables/useScheduleTable'
 // Components
+import DaySelector from '../components/DaySelector.vue'
 import CountdownCell from '../components/countdown/CountdownCell.vue'
 import ElapsedCell from '../components/countdown/ElapsedCell.vue'
 // Assets
@@ -104,6 +107,8 @@ import R53Logo from '../components/lines/R53Logo.vue'
 import R60Logo from '../components/lines/R60Logo.vue'
 import R63Logo from '../components/lines/R63Logo.vue'
 // Utils
+import { postedRows, tomorrow } from '@/utils/posted'
+import { POPULATIONS } from '@/utils/timetable'
 import { stations } from '@/utils/stations'
 import { renderScheduledDepartureTime } from '@/utils/utils'
 
@@ -119,13 +124,37 @@ const realTimeMCHeaders: Header[] = [
 
 const sortBySchedule = 'departure_time'
 const sortTypeSchedule: SortType = 'asc'
-const scheduleMCHeaders: Header[] = [
+const SCHEDULE_HEADERS: Header[] = [
   { text: 'Departure', value: 'departure_time', sortable: false },
   { text: 'Line', value: 'route_short_name' },
   { text: 'Left', value: 'left_str', width: 84 }
 ]
 
 const scheduleStore = useScheduleStore()
+
+const day = computed({
+  get: () => scheduleStore.day,
+  set: (value) => scheduleStore.setDay(value)
+})
+const isToday = computed(() => day.value === 'today')
+
+// Nothing is counting down towards a day that has not started, so the column
+// would be a row of dashes.
+const scheduleMCHeaders = computed(() =>
+  isToday.value
+    ? SCHEDULE_HEADERS
+    : SCHEDULE_HEADERS.filter((header) => header.value !== 'left_str')
+)
+
+// Today is the live feed cross-checked against the poster; the feed only answers
+// for today, so tomorrow is the poster read through the calendar.
+const departures = computed(() =>
+  isToday.value ? scheduleStore.getScheduleMC : postedRows(tomorrow(), POPULATIONS.MC)
+)
+
+// Nothing has gone yet on a day that has not started, so tomorrow is clocked from
+// midnight: the whole day shows, undimmed, with no earlier trains to reveal.
+const now = computed(() => (isToday.value ? scheduleStore.time : '00:00:00'))
 
 // The store keeps the whole service day; the table shows what is still catchable
 // plus the handful that just went, and the rest is a click away.
@@ -136,10 +165,7 @@ const {
   hasDeparted,
   isRecentlyDeparted,
   rowClass
-} = useScheduleTable(
-  computed(() => scheduleStore.getScheduleMC),
-  computed(() => scheduleStore.time)
-)
+} = useScheduleTable(departures, now)
 
 const realTimeStore = useRealTimeStore()
 const realTimeMCFields = computed(() => {

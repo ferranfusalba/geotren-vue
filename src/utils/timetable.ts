@@ -135,9 +135,10 @@ export const detectDayType = (
  * The pattern a date would run, by the calendar alone.
  *
  * detectDayType is better whenever the API has something to say, since it reads
- * the service actually running; this is only the tie-break.
+ * the service actually running. This is the tie-break, and the only option for a
+ * date the feed cannot be asked about.
  */
-const fgcDayTypeFromCalendar = (today: Date): DayType => {
+export const fgcDayTypeFromCalendar = (today: Date): DayType => {
   const day = today.getDay()
   if (day === 0 || day === 6 || isHoliday(today)) return 'saturdayHoliday'
   return today.getMonth() === 7 ? 'augustWeekday' : 'weekday'
