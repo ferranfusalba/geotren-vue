@@ -220,7 +220,7 @@ export const e8Timetable: Record<E8DayType, Record<E8Direction, E8Trip[]>> = {
       { stops: [1295, 1286, 1267, 1263, 1254, 1245, 1235] },
       { stops: [1330, 1322, 1305, 1301, 1293, 1285, 1275] },
       { stops: [1445, 1440, 1426, 1420, 1412, 1404, 1395], everySaturday: true },
-      { stops: [125, 120, 106, 100, 92, 84, 75], everySaturday: true }
+      { stops: [1565, 1560, 1546, 1540, 1532, 1524, 1515], everySaturday: true }
     ],
     fromBarcelona: [
       { stops: [430, 435, 450, 453, 459, 469, 484] },
@@ -249,8 +249,8 @@ export const e8Timetable: Record<E8DayType, Record<E8Direction, E8Trip[]>> = {
       { stops: [1265, 1270, 1286, 1289, 1295, 1305, 1320] },
       { stops: [1300, 1305, 1321, 1324, 1330, 1340, 1355] },
       { stops: [1340, 1345, 1360, 1363, 1369, 1379, 1394] },
-      { stops: [15, 20, 35, 38, 44, 54, 68], everySaturday: true },
-      { stops: [135, 140, 155, 158, 164, 174, 188], everySaturday: true }
+      { stops: [1455, 1460, 1475, 1478, 1484, 1494, 1508], everySaturday: true },
+      { stops: [1575, 1580, 1595, 1598, 1604, 1614, 1628], everySaturday: true }
     ]
   },
   sundayHoliday: {
