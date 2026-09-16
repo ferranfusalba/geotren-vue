@@ -9,7 +9,7 @@
       header-class-name="arrivals-table"
       table-class-name="arrivals-table main-table"
       style="--6c2c1440: 0"
-      :rows-per-page="4"
+      :rows-per-page="3"
     >
       <template #item-lin="item">
         <L8Logo v-if="item.lin === 'L8'" />
@@ -38,6 +38,7 @@
       header-class-name="stationed-table"
       table-class-name="main-table stationed-table"
       style="--6c2c1440: 0"
+      :rows-per-page="3"
     >
       <template #item-lin="item">
         <S4Logo v-if="item.lin === 'S4'" />
@@ -186,7 +187,10 @@ const {
   rowClass
 } = useScheduleTable(
   computed(() => scheduleStore.getSchedulePE),
-  computed(() => scheduleStore.time)
+  computed(() => scheduleStore.time),
+  // Pl. Espanya carries three boards, so it gives up one of its passed rows to
+  // keep the page readable; MC has room for the usual two.
+  { keep: 1 }
 )
 
 const fetcherRealtimePE = () => {
