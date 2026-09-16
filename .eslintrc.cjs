@@ -17,6 +17,11 @@ module.exports = {
       'extends': [
         'plugin:cypress/recommended'
       ]
+    },
+    {
+      // Build-time tooling, run by hand with node rather than bundled.
+      files: ['scripts/**/*.mjs'],
+      env: { node: true }
     }
   ],
   parserOptions: {
