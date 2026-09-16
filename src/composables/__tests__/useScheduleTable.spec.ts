@@ -81,14 +81,10 @@ describe('useScheduleTable', () => {
     // 05:00-09:00 have gone, 10:00 onwards have not.
     const { rows, hiddenEarlierCount } = setup(day, '09:30:00')
 
-    expect(times(rows.value).slice(0, RECENTLY_DEPARTED)).toEqual([
-      '07:00:00',
-      '08:00:00',
-      '09:00:00'
-    ])
+    expect(times(rows.value).slice(0, RECENTLY_DEPARTED)).toEqual(['08:00:00', '09:00:00'])
     expect(times(rows.value)[RECENTLY_DEPARTED]).toBe('10:00:00')
-    // Five had gone; three are shown, so the button offers the other two.
-    expect(hiddenEarlierCount.value).toBe(2)
+    // Five had gone; two are shown, so the button offers the other three.
+    expect(hiddenEarlierCount.value).toBe(3)
   })
 
   it('counts only what the button would actually reveal', () => {
@@ -102,8 +98,8 @@ describe('useScheduleTable', () => {
   })
 
   it('offers no button when everything departed is already on screen', () => {
-    // Only 05:00, 06:00 and 07:00 have gone — all three are shown.
-    const { rows, hiddenEarlierCount } = setup(day, '07:30:00')
+    // Only 05:00 and 06:00 have gone — both are shown.
+    const { rows, hiddenEarlierCount } = setup(day, '06:30:00')
 
     expect(hiddenEarlierCount.value).toBe(0)
     expect(times(rows.value)[0]).toBe('05:00:00')
@@ -119,7 +115,7 @@ describe('useScheduleTable', () => {
   it('handles a day that is over', () => {
     const { rows, hiddenEarlierCount } = setup(day, '23:59:00')
 
-    expect(times(rows.value)).toEqual(['14:00:00', '15:00:00', '16:00:00'])
+    expect(times(rows.value)).toEqual(['15:00:00', '16:00:00'])
     expect(hiddenEarlierCount.value).toBe(day.length - RECENTLY_DEPARTED)
   })
 
@@ -138,13 +134,13 @@ describe('useScheduleTable', () => {
     const { isRecentlyDeparted, showEarlier } = setup(day, '09:30:00')
 
     expect(isRecentlyDeparted(row('09:00:00'))).toBe(true)
-    expect(isRecentlyDeparted(row('07:00:00'))).toBe(true)
-    expect(isRecentlyDeparted(row('06:00:00'))).toBe(false)
+    expect(isRecentlyDeparted(row('08:00:00'))).toBe(true)
+    expect(isRecentlyDeparted(row('07:00:00'))).toBe(false)
     expect(isRecentlyDeparted(row('10:00:00'))).toBe(false)
 
     // Expanding the table must not start timers on the older rows.
     showEarlier.value = true
-    expect(isRecentlyDeparted(row('06:00:00'))).toBe(false)
+    expect(isRecentlyDeparted(row('07:00:00'))).toBe(false)
   })
 
   it('can be told to paint a row gone on something other than its own time', () => {
