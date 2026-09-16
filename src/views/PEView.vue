@@ -64,28 +64,45 @@
 
     <EasyDataTable
       :headers="schedulePEHeaders"
-      :items="schedulePETimeFiltered"
+      :items="schedulePERows"
       :sort-by="sortBy"
       :sort-type="sortType"
       :rows-per-page="200"
       header-class-name="departures-table"
       table-class-name="main-table departures-table"
+      :body-row-class-name="scheduleRowClass"
     >
+      <template #body-prepend v-if="departedCount">
+        <tr class="earlier-row">
+          <td :colspan="schedulePEHeaders.length">
+            <button @click="showEarlier = !showEarlier" class="toggle-earlier">
+              {{ showEarlier ? 'Hide' : 'Show' }} {{ departedCount }} earlier trains
+            </button>
+          </td>
+        </tr>
+      </template>
       <template #item-departure_time="item">{{
         renderScheduledDepartureTime(item.departure_time)
       }}</template>
       <template #item-route_short_name="item">
         <S4Logo v-if="item.route_short_name === 'S4'" />
-        <S8Logo v-if="item.route_short_name === 'S8'" />
-        <R5Logo v-if="item.route_short_name === 'R5'" />
-        <R50Logo v-if="item.route_short_name === 'R50'" />
-        <R53Logo v-if="item.route_short_name === 'R53'" />
-        <R6Logo v-if="item.route_short_name === 'R6'" />
-        <R60Logo v-if="item.route_short_name === 'R60'" />
-        <R63Logo v-if="item.route_short_name === 'R63'" />
+        <S8Logo v-else-if="item.route_short_name === 'S8'" />
+        <R5Logo v-else-if="item.route_short_name === 'R5'" />
+        <R50Logo v-else-if="item.route_short_name === 'R50'" />
+        <R53Logo v-else-if="item.route_short_name === 'R53'" />
+        <R6Logo v-else-if="item.route_short_name === 'R6'" />
+        <R60Logo v-else-if="item.route_short_name === 'R60'" />
+        <R63Logo v-else-if="item.route_short_name === 'R63'" />
+        <!-- A line we have no roundel for still shows its code, so an unexpected
+             value from the API reads as data rather than as an empty cell. -->
+        <span v-else class="line-fallback">{{ item.route_short_name || '?' }}</span>
       </template>
       <template #item-left_str="item">
-        <CountdownCell :departure_time="item.departure_time"></CountdownCell>
+        <CountdownCell
+          v-if="!hasDeparted(item)"
+          :departure_time="item.departure_time"
+        ></CountdownCell>
+        <span v-else>&mdash;</span>
       </template>
     </EasyDataTable>
   </main>
@@ -93,12 +110,14 @@
 
 <script setup lang="ts">
 // Vue
-import { onMounted, computed, onUnmounted } from 'vue'
+import { onMounted, computed, onUnmounted, ref } from 'vue'
 // Pinia Store
 import { useRealTimeStore } from '../stores/realtime'
 import { useScheduleStore } from '../stores/schedule'
 // Table
 import type { Header, SortType } from 'vue3-easy-data-table'
+// Types
+import type { MergedScheduleRow } from '@/types/schedule'
 // Components
 import CountdownCell from '../components/countdown/CountdownCell.vue'
 // Assets
@@ -150,9 +169,26 @@ const realTimePEArrivalsFieldsCoords = computed(() => {
 })
 
 const scheduleStore = useScheduleStore()
-const schedulePETimeFiltered = computed(() => {
-  return scheduleStore.getSchedulePETimeFiltered
-})
+
+// The store keeps the whole service day; by default the table starts at the next
+// train, with the ones already gone a button away.
+const showEarlier = ref(false)
+
+const hasDeparted = (item: MergedScheduleRow) => item.departure_time < scheduleStore.time
+
+const schedulePE = computed(() => scheduleStore.getSchedulePE)
+const departedCount = computed(() => schedulePE.value.filter(hasDeparted).length)
+const schedulePERows = computed(() =>
+  showEarlier.value ? schedulePE.value : schedulePE.value.filter((item) => !hasDeparted(item))
+)
+
+// 'row-missing': the API never reported it and it came off the printed timetable,
+// painted so a gap in the open data is visible rather than silent.
+// 'row-departed': already gone, dimmed so it cannot be mistaken for a train to catch.
+const scheduleRowClass = (item: MergedScheduleRow) =>
+  [item.source === 'timetable' ? 'row-missing' : '', hasDeparted(item) ? 'row-departed' : '']
+    .filter(Boolean)
+    .join(' ')
 
 const fetcherRealtimePE = () => {
   realTimeStore.cleanRealtimeStorePEd()

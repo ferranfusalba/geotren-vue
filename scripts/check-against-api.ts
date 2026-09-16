@@ -4,12 +4,15 @@
  * poster revision or a change in the open data shows up as a number rather than
  * as a surprise in the app.
  *
- *   node --experimental-strip-types scripts/check-against-api.mjs
+ *   npx vite-node scripts/check-against-api.ts
+ *
+ * Run through vite-node so it resolves the app's '@' alias and shares the very
+ * same population definitions the store uses.
  *
  * Worth re-running on a Saturday and on an August weekday, which are the days
  * page 2 of the poster governs and that a normal weekday run never exercises.
  */
-import { fgcTimetable, TIMETABLE_STATIONS } from '../src/data/fgcTimetable.ts'
+import { departureAt, detectDayType, POPULATIONS, tripsFor } from '@/utils/timetable'
 
 const BASE =
   'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records'
@@ -30,38 +33,28 @@ const fetchAll = async (query) => {
 }
 
 const minutesOf = (time) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5))
-const index = (station) => TIMETABLE_STATIONS.indexOf(station)
-
-const tripsFor = (dayType, direction, calling) =>
-  fgcTimetable[dayType][direction].filter((trip) =>
-    calling.every((station) => trip.stops[index(station)] !== null)
-  )
 
 const format = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
 
+// Populations come from src/utils/timetable.ts so this script and the app can
+// never disagree about which trains a query is supposed to return.
 const CHECKS = [
   {
     name: 'MC -> Pl. Espanya',
-    direction: 'inbound',
-    station: 'MC',
-    calling: ['MC', 'PE'],
+    population: POPULATIONS.MC,
     query:
       'refine=parent_station%3AMC&refine=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya'
   },
   {
     name: 'Pl. Espanya -> MC',
-    direction: 'outbound',
-    station: 'PE',
-    calling: ['PE', 'MC'],
+    population: POPULATIONS.PE,
     query:
       'refine=parent_station%3APE&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya' +
       '&exclude=route_short_name%3AL8&exclude=route_short_name%3AS3&exclude=route_short_name%3AS9'
   },
   {
-    name: 'QC outbound',
-    direction: 'outbound',
-    station: 'QC',
-    calling: ['QC'],
+    name: 'QC outbound (not wired up yet)',
+    population: { station: 'QC', direction: 'outbound', calling: ['QC'] },
     query: 'refine=parent_station%3AQC&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya'
   }
 ]
@@ -74,21 +67,11 @@ const run = async () => {
     const rows = await fetchAll(check.query)
     const apiTimes = rows.map((row) => minutesOf(row.departure_time)).sort((a, b) => a - b)
 
-    // Same scoring the app uses to pick today's timetable.
-    let best = { dayType: null, score: -1 }
-    for (const dayType of Object.keys(fgcTimetable)) {
-      const printed = tripsFor(dayType, check.direction, check.calling).map(
-        (trip) => trip.stops[index(check.station)]
-      )
-      const matched = apiTimes.filter((time) =>
-        printed.some((minute) => Math.abs(minute - time) <= TOLERANCE)
-      ).length
-      const score = matched / Math.max(apiTimes.length, printed.length, 1)
-      if (score > best.score) best = { dayType, score }
-    }
+    // Exactly what the app does to pick today's timetable.
+    const dayType = detectDayType(apiTimes, check.population)
 
-    const printed = tripsFor(best.dayType, check.direction, check.calling)
-      .map((trip) => trip.stops[index(check.station)])
+    const printed = tripsFor(dayType, check.population)
+      .map((trip) => departureAt(trip, check.population.station))
       .sort((a, b) => a - b)
 
     const missing = printed.filter(
@@ -100,9 +83,8 @@ const run = async () => {
 
     worst = Math.max(worst, missing.length + extra.length)
     console.log(
-      `${check.name.padEnd(20)} poster ${String(printed.length).padStart(4)}  ` +
-        `api ${String(apiTimes.length).padStart(4)}  ` +
-        `[${best.dayType}, ${(best.score * 100).toFixed(1)}% match]`
+      `${check.name.padEnd(30)} poster ${String(printed.length).padStart(4)}  ` +
+        `api ${String(apiTimes.length).padStart(4)}  [${dayType}]`
     )
     if (missing.length) console.log(`  only on the poster: ${missing.map(format).join(', ')}`)
     if (extra.length) console.log(`  only in the API:    ${extra.map(format).join(', ')}`)

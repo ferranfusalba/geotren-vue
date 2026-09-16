@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import type { Fields, MergedScheduleRow } from '@/types/schedule'
 import { crossCheckSchedule } from '@/utils/crosscheck'
-import { detectDayType, toMinutes, tripsFor } from '@/utils/timetable'
+import { detectDayType, POPULATIONS, toMinutes, tripsFor } from '@/utils/timetable'
 
 const PAGE_SIZE = 100
 const MAX_PAGES = 5
@@ -32,7 +32,7 @@ export const useScheduleStore = defineStore('schedule', {
     time: '',
     scheduleMC: [] as MergedScheduleRow[],
     scheduleQCTimeFiltered: [] as Fields[],
-    schedulePETimeFiltered: [] as Fields[]
+    schedulePE: [] as MergedScheduleRow[]
   }),
   getters: {
     getScheduleMC(state) {
@@ -41,8 +41,8 @@ export const useScheduleStore = defineStore('schedule', {
     getScheduleQCTimeFiltered(state) {
       return state.scheduleQCTimeFiltered
     },
-    getSchedulePETimeFiltered(state) {
-      return state.schedulePETimeFiltered
+    getSchedulePE(state) {
+      return state.schedulePE
     }
   },
   actions: {
@@ -55,12 +55,12 @@ export const useScheduleStore = defineStore('schedule', {
         // The query asks for trains calling at MC on their way to Pl. Espanya, so
         // the poster is narrowed to the same population before the two are diffed.
         const apiTimes = dataResults.map((x) => toMinutes(x.departure_time))
-        const dayType = detectDayType(apiTimes, 'MC', 'inbound')
-        const trips = tripsFor(dayType, 'inbound', ['MC', 'PE'])
+        const dayType = detectDayType(apiTimes, POPULATIONS.MC)
+        const trips = tripsFor(dayType, POPULATIONS.MC)
 
         // The whole service day is kept: the API returns it anyway, and the view
         // decides whether to show the trains that have already gone.
-        this.scheduleMC = crossCheckSchedule(dataResults, trips, 'MC')
+        this.scheduleMC = crossCheckSchedule(dataResults, trips, POPULATIONS.MC.station)
       } catch (error) {
         alert(error)
         console.log(error)
@@ -88,19 +88,17 @@ export const useScheduleStore = defineStore('schedule', {
     },
     async fetchSchedulePE() {
       try {
-        const data = await axios.get(
-          'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?limit=100&refine=parent_station%3APE&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya&exclude=route_short_name%3AL8&exclude=route_short_name%3AS3&exclude=route_short_name%3AS9'
+        const dataResults = await fetchAllPages(
+          'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?refine=parent_station%3APE&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya&exclude=route_short_name%3AL8&exclude=route_short_name%3AS3&exclude=route_short_name%3AS9'
         )
 
-        const dataResults = data.data.results
+        // POPULATIONS.PE mirrors the exclusions above, so the poster is narrowed
+        // to the same trains before the two are diffed.
+        const apiTimes = dataResults.map((x) => toMinutes(x.departure_time))
+        const dayType = detectDayType(apiTimes, POPULATIONS.PE)
+        const trips = tripsFor(dayType, POPULATIONS.PE)
 
-        this.schedulePETimeFiltered = dataResults
-          .map((x: Fields) => {
-            if ((x['departure_time'] as string) >= this.time) {
-              return x
-            }
-          })
-          .filter((notUndefined: Fields) => notUndefined !== undefined)
+        this.schedulePE = crossCheckSchedule(dataResults, trips, POPULATIONS.PE.station)
       } catch (error) {
         alert(error)
         console.log(error)
@@ -118,7 +116,7 @@ export const useScheduleStore = defineStore('schedule', {
       this.time = ''
       this.scheduleMC = []
       this.scheduleQCTimeFiltered = []
-      this.schedulePETimeFiltered = []
+      this.schedulePE = []
     },
     cleanScheduledStoreMC() {
       this.time = ''
@@ -130,7 +128,7 @@ export const useScheduleStore = defineStore('schedule', {
     },
     cleanScheduledStorePE() {
       this.time = ''
-      this.schedulePETimeFiltered = []
+      this.schedulePE = []
     }
   }
 })

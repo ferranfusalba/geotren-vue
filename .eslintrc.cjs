@@ -19,8 +19,8 @@ module.exports = {
       ]
     },
     {
-      // Build-time tooling, run by hand with node rather than bundled.
-      files: ['scripts/**/*.mjs'],
+      // Build-time tooling, run by hand rather than bundled.
+      files: ['scripts/**/*'],
       env: { node: true }
     }
   ],
