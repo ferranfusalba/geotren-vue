@@ -86,6 +86,13 @@ main.table-view-layout {
   max-width: 480px;
 }
 
+// The line roundels. Sized here rather than inline so a cramped table can ask
+// for a smaller one.
+.line-logo {
+  height: 20px;
+  display: flex;
+}
+
 button.refresh-real-time {
   font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, Inter, 'Segoe UI', Roboto,
     Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', sans-serif;

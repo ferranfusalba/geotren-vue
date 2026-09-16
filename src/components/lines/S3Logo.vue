@@ -1,3 +1,3 @@
 <template>
-  <img src="../../assets/lines/S3.svg" alt="S3" style="height: 20px; display: flex" />
+  <img src="../../assets/lines/S3.svg" alt="S3" class="line-logo" />
 </template>
