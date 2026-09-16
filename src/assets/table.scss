@@ -62,4 +62,49 @@
   --easy-table-scrollbar-corner-color: #2d3a4f;
 
   --easy-table-loading-mask-background-color: #2d3a4f;
+
+  // Recovered from the printed timetable because the API never reported it.
+  // Overrides both the odd and the even row colour so the gap is unmistakable.
+  tbody > tr.row-missing > td {
+    background-color: #b3541e;
+    color: #ffffff;
+  }
+
+  // Already gone. Only on screen when "show earlier trains" is on, dimmed so it
+  // reads as history rather than as something still catchable.
+  tbody > tr.row-departed > td {
+    opacity: 0.45;
+    font-style: italic;
+  }
+
+  // Shown in place of a roundel we do not have artwork for.
+  .line-fallback {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid currentColor;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  // First row of the table: reveals the trains that have already gone.
+  tbody > tr.earlier-row > td {
+    padding: 0;
+    background-color: #1f2263;
+
+    button.toggle-earlier {
+      width: 100%;
+      padding: 8px 10px;
+      border: none;
+      background: none;
+      color: #c0c7d2;
+      font: inherit;
+      font-weight: 500;
+      cursor: pointer;
+
+      &:active {
+        background-color: #4c5d7a;
+      }
+    }
+  }
 }
