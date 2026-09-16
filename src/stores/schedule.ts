@@ -1,17 +1,42 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
-import type { Fields } from '@/types/schedule'
+import type { Fields, MergedScheduleRow } from '@/types/schedule'
+import { crossCheckSchedule } from '@/utils/crosscheck'
+import { detectDayType, toMinutes, tripsFor } from '@/utils/timetable'
+
+const PAGE_SIZE = 100
+const MAX_PAGES = 5
+
+/**
+ * The dataset returns more departures than one page holds (a weekday at MC is
+ * ~123) and its default ordering is not chronological, so a single capped
+ * request drops an arbitrary handful of trains. Page through the lot instead.
+ */
+const fetchAllPages = async (url: string): Promise<Fields[]> => {
+  const results: Fields[] = []
+  let total = Infinity
+
+  for (let page = 0; results.length < total && page < MAX_PAGES; page += 1) {
+    const { data } = await axios.get(
+      `${url}&order_by=departure_time&limit=${PAGE_SIZE}&offset=${page * PAGE_SIZE}`
+    )
+    total = data.total_count
+    results.push(...data.results)
+  }
+
+  return results
+}
 
 export const useScheduleStore = defineStore('schedule', {
   state: () => ({
     time: '',
-    scheduleMCTimeFiltered: [] as Fields[],
+    scheduleMC: [] as MergedScheduleRow[],
     scheduleQCTimeFiltered: [] as Fields[],
     schedulePETimeFiltered: [] as Fields[]
   }),
   getters: {
-    getScheduleMCTimeFiltered(state) {
-      return state.scheduleMCTimeFiltered
+    getScheduleMC(state) {
+      return state.scheduleMC
     },
     getScheduleQCTimeFiltered(state) {
       return state.scheduleQCTimeFiltered
@@ -23,19 +48,19 @@ export const useScheduleStore = defineStore('schedule', {
   actions: {
     async fetchScheduleMC() {
       try {
-        const data = await axios.get(
-          'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?limit=100&refine=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya&refine=parent_station%3AMC'
+        const dataResults = await fetchAllPages(
+          'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?refine=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya&refine=parent_station%3AMC'
         )
 
-        const dataResults = data.data.results
+        // The query asks for trains calling at MC on their way to Pl. Espanya, so
+        // the poster is narrowed to the same population before the two are diffed.
+        const apiTimes = dataResults.map((x) => toMinutes(x.departure_time))
+        const dayType = detectDayType(apiTimes, 'MC', 'inbound')
+        const trips = tripsFor(dayType, 'inbound', ['MC', 'PE'])
 
-        this.scheduleMCTimeFiltered = dataResults
-          .map((x: Fields) => {
-            if ((x['departure_time'] as string) >= this.time) {
-              return x
-            }
-          })
-          .filter((notUndefined: Fields) => notUndefined !== undefined)
+        // The whole service day is kept: the API returns it anyway, and the view
+        // decides whether to show the trains that have already gone.
+        this.scheduleMC = crossCheckSchedule(dataResults, trips, 'MC')
       } catch (error) {
         alert(error)
         console.log(error)
@@ -91,13 +116,13 @@ export const useScheduleStore = defineStore('schedule', {
     },
     cleanScheduledStore() {
       this.time = ''
-      this.scheduleMCTimeFiltered = []
+      this.scheduleMC = []
       this.scheduleQCTimeFiltered = []
       this.schedulePETimeFiltered = []
     },
     cleanScheduledStoreMC() {
       this.time = ''
-      this.scheduleMCTimeFiltered = []
+      this.scheduleMC = []
     },
     cleanScheduledStoreQC() {
       this.time = ''
