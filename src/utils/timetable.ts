@@ -23,22 +23,53 @@ export const toTimeString = (minutes: number) =>
   `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}:00`
 
 /**
- * The printed timetable covers the whole Pl. Espanya <-> Martorell segment, while
- * each API query asks for a filtered slice of it. Narrowing the trips to the same
- * population is what makes a diff meaningful: comparing against the raw table
- * would report trains the API was never asked for as "missing".
+ * The slice of the printed timetable that one view's API query asks for.
  *
+ * The poster covers the whole Pl. Espanya <-> Martorell segment, while each query
+ * is a filtered part of it. Narrowing to the same population is what makes a diff
+ * meaningful: compared against the raw table, trains the API was never asked for
+ * would show up as "missing".
+ */
+export interface TripPopulation {
+  /** The station whose departure column the view shows. */
+  station: string
+  direction: Direction
+  /** Stations the trip must call at, mirroring the query's parent_station / headsign. */
+  calling: string[]
+  /** Lines the query excludes by route_short_name. */
+  excludingLines?: readonly string[]
+}
+
+/**
+ * One definition per view, so the store, the tests and scripts/check-against-api
+ * cannot drift apart. Each mirrors its query in src/stores/schedule.ts.
+ */
+export const POPULATIONS = {
+  // parent_station=MC, trip_headsign=Barcelona - Plaça Espanya
+  MC: { station: 'MC', direction: 'inbound', calling: ['MC', 'PE'] },
+  // parent_station=PE, headsign != Pl. Espanya, minus L8/S3/S9
+  PE: {
+    station: 'PE',
+    direction: 'outbound',
+    calling: ['PE'],
+    excludingLines: ['L8', 'S3', 'S9']
+  }
+} satisfies Record<string, TripPopulation>
+
+/**
  * A station counts as called at only if the poster prints a real time there — a
  * '|' means the train passes through without stopping.
  */
-export const tripsFor = (dayType: DayType, direction: Direction, calling: string[]) => {
-  const indexes = calling.map(stationIndex)
+export const tripsFor = (dayType: DayType, population: TripPopulation) => {
+  const indexes = population.calling.map(stationIndex)
   if (indexes.some((index) => index === -1)) {
-    throw new Error(`Unknown station in ${calling.join(', ')}`)
+    throw new Error(`Unknown station in ${population.calling.join(', ')}`)
   }
 
-  return fgcTimetable[dayType][direction].filter((trip) =>
-    indexes.every((index) => trip.stops[index] !== null)
+  return fgcTimetable[dayType][population.direction].filter(
+    (trip) =>
+      indexes.every((index) => trip.stops[index] !== null) &&
+      !population.excludingLines?.includes(trip.line as string)
   )
 }
 
@@ -54,8 +85,7 @@ export const departureAt = (trip: TimetableTrip, station: string) => trip.stops[
  */
 export const detectDayType = (
   apiTimes: number[],
-  station: string,
-  direction: Direction,
+  population: TripPopulation,
   today = new Date()
 ): DayType => {
   const calendarGuess = guessDayTypeFromCalendar(today)
@@ -64,8 +94,10 @@ export const detectDayType = (
   let best: { dayType: DayType; score: number } | null = null
 
   for (const dayType of DAY_TYPES) {
-    const printed = fgcTimetable[dayType][direction]
-      .map((trip) => departureAt(trip, station))
+    // Scored against the same slice the view compares, so lines the query
+    // excludes cannot dilute the match.
+    const printed = tripsFor(dayType, population)
+      .map((trip) => departureAt(trip, population.station))
       .filter((minute): minute is number => minute !== null)
 
     const matched = apiTimes.filter((time) =>
