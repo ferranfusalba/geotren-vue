@@ -16,6 +16,16 @@
   --easy-table-header-font-color: #ffffff;
 }
 
+// The library reserves a whole page of row height whichever rows exist, so a
+// real-time board with two trains on it leaves a blank block underneath. These
+// boards are short by nature, so they size to their contents.
+.arrivals-table,
+.stationed-table {
+  .vue3-easy-data-table__main {
+    min-height: 0;
+  }
+}
+
 .main-table {
   thead > tr > th > span > span {
     font-weight: 700;

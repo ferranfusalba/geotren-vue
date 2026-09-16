@@ -87,6 +87,14 @@ describe('useScheduleTable', () => {
     expect(hiddenEarlierCount.value).toBe(3)
   })
 
+  it('can be asked to keep a different number', () => {
+    // Pl. Espanya has three boards on one screen, so it keeps one rather than two.
+    const { rows, hiddenEarlierCount } = useScheduleTable(ref(day), ref('09:30:00'), { keep: 1 })
+
+    expect(times(rows.value)[0]).toBe('09:00:00')
+    expect(hiddenEarlierCount.value).toBe(4)
+  })
+
   it('counts only what the button would actually reveal', () => {
     const { rows, hiddenEarlierCount, showEarlier } = setup(day, '09:30:00')
     const shown = rows.value.length

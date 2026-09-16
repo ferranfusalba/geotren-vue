@@ -38,6 +38,9 @@ export interface ScheduleTableOptions<T extends MergedScheduleRow> {
    * the last column, which follows the train whatever the bus is doing.
    */
   passed?: (row: T) => boolean
+
+  /** How many departed rows to keep on screen. Defaults to RECENTLY_DEPARTED. */
+  keep?: number
 }
 
 /**
@@ -66,7 +69,7 @@ export const useScheduleTable = <T extends MergedScheduleRow>(
       const index = allRows.value.findIndex((row) => !options.stale!(row))
       return index === -1 ? allRows.value.length : index
     }
-    return Math.max(departed.value.length - RECENTLY_DEPARTED, 0)
+    return Math.max(departed.value.length - (options.keep ?? RECENTLY_DEPARTED), 0)
   })
 
   /** The rows kept on screen whether or not the button has been pressed. */
