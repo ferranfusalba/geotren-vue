@@ -17,14 +17,27 @@ export interface ScheduleTableOptions<T extends MergedScheduleRow> {
    * Which rows the look-back is counted in. Everything from the third-from-last
    * of these onwards stays on screen, intervening rows included.
    *
-   * The connection view counts in buses rather than trains: if you are sitting
-   * on a bus that has already left, you still need the trains waiting for you at
-   * the other end, and there are more trains than buses.
+   * Rows that are no longer worth offering. The table opens at the first row
+   * this says no to, and everything before it goes behind the button.
+   *
+   * Defaults to "already departed", less the last few. The connection view needs
+   * its own answer: there a row is spent once its bus has gone, whatever its
+   * train is doing, since a train you cannot reach is no use.
    *
    * Decide from the row's own fields. Rows reach here as reactive proxies, so
    * comparing identity against whatever produced them will not hold.
    */
-  anchor?: (row: T) => boolean
+  stale?: (row: T) => boolean
+
+  /**
+   * Whether a row reads as gone, for the dimming. Separate from `stale`, which
+   * decides what is hidden: a bus that left ten minutes ago is past catching but
+   * still on screen, so it should look it.
+   *
+   * Defaults to "already departed". Note this does not touch the countdown in
+   * the last column, which follows the train whatever the bus is doing.
+   */
+  passed?: (row: T) => boolean
 }
 
 /**
@@ -43,28 +56,27 @@ export const useScheduleTable = <T extends MergedScheduleRow>(
   const hasDeparted = (row: MergedScheduleRow) => row.departure_time < now.value
 
   const departed = computed(() => allRows.value.filter(hasDeparted))
-  const upcoming = computed(() => allRows.value.filter((row) => !hasDeparted(row)))
 
   /**
-   * Where the default view starts: far enough back to include the last few
-   * anchor rows. Falls back to counting plain rows when none of what has gone
-   * carries an anchor, so the table behaves the same before the first bus.
+   * Where the default view opens. The rows are in departure order and the spent
+   * ones are a prefix, so this is just the first row still worth offering.
    */
   const firstShown = computed(() => {
-    const anchors = options.anchor ? departed.value.filter(options.anchor) : departed.value
-    const recent = (anchors.length ? anchors : departed.value).slice(-RECENTLY_DEPARTED)
-    if (recent.length === 0) return departed.value.length
-    return departed.value.indexOf(recent[0])
+    if (options.stale) {
+      const index = allRows.value.findIndex((row) => !options.stale!(row))
+      return index === -1 ? allRows.value.length : index
+    }
+    return Math.max(departed.value.length - RECENTLY_DEPARTED, 0)
   })
 
   /** The rows kept on screen whether or not the button has been pressed. */
-  const recentlyDeparted = computed(() => departed.value.slice(firstShown.value))
+  const recentlyDeparted = computed(() => allRows.value.slice(firstShown.value).filter(hasDeparted))
 
-  /** Only the ones the button would reveal — the recent few are already shown. */
+  /** Only the ones the button would reveal — the rest are already shown. */
   const hiddenEarlierCount = computed(() => firstShown.value)
 
   const rows = computed(() =>
-    showEarlier.value ? allRows.value : [...recentlyDeparted.value, ...upcoming.value]
+    showEarlier.value ? allRows.value : allRows.value.slice(firstShown.value)
   )
 
   /**
@@ -83,8 +95,10 @@ export const useScheduleTable = <T extends MergedScheduleRow>(
    * 'row-departed': already gone, dimmed so it cannot be mistaken for a train to
    * catch.
    */
-  const rowClass = (row: MergedScheduleRow) =>
-    [row.source === 'timetable' ? 'row-missing' : '', hasDeparted(row) ? 'row-departed' : '']
+  const isPassed = (row: T) => (options.passed ? options.passed(row) : hasDeparted(row))
+
+  const rowClass = (row: T) =>
+    [row.source === 'timetable' ? 'row-missing' : '', isPassed(row) ? 'row-departed' : '']
       .filter(Boolean)
       .join(' ')
 

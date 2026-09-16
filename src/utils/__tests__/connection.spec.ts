@@ -51,15 +51,18 @@ describe('pairE8WithTrains', () => {
     // Camins had you taken the 09:00 that is already shown against the 09:25.
     const rows = pairE8WithTrains([bus('09:00', '09:20')], [train('09:25'), train('09:35')])
 
-    expect(rows[0].waitFromEarlierBus).toBeUndefined()
+    expect(rows[0].earlierBus).toBeUndefined()
     expect(rows[1].e8).toBeUndefined()
-    expect(rows[1].waitFromEarlierBus).toBe(15)
+    expect(rows[1].earlierBus?.wait).toBe(15)
+    // The bus itself is carried, not just the wait: the row is out of reach the
+    // moment that bus is, however far off its train still is.
+    expect(rows[1].earlierBus?.departure).toBe(at('09:00'))
   })
 
   it('leaves trains before the first bus with nothing to wait for', () => {
     const rows = pairE8WithTrains([bus('09:00', '09:20')], [train('06:00'), train('09:25')])
 
-    expect(rows[0].waitFromEarlierBus).toBeUndefined()
+    expect(rows[0].earlierBus).toBeUndefined()
   })
 
   it('measures the wait from the most recent bus, not the first', () => {
@@ -69,7 +72,8 @@ describe('pairE8WithTrains', () => {
     )
 
     expect(rows[1].e8?.arrival).toBe(at('09:50'))
-    expect(rows[2].waitFromEarlierBus).toBe(20)
+    expect(rows[2].earlierBus?.wait).toBe(20)
+    expect(rows[2].earlierBus?.departure).toBe(at('09:30'))
   })
 
   it('leaves every train alone when no bus runs', () => {
