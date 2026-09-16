@@ -24,8 +24,10 @@
       <template #body-prepend v-if="hiddenEarlierCount">
         <tr class="earlier-row">
           <td :colspan="headers.length">
+            <!-- "departures" rather than "trains": here a row is a way of making
+                 the journey, and the count covers the bus-less ones too. -->
             <button @click="showEarlier = !showEarlier" class="toggle-earlier">
-              {{ showEarlier ? 'Hide' : 'Show' }} {{ hiddenEarlierCount }} earlier trains
+              {{ showEarlier ? 'Hide' : 'Show' }} {{ hiddenEarlierCount }} earlier departures
             </button>
           </td>
         </tr>
@@ -61,9 +63,9 @@
         </span>
         <!-- No bus of its own: what you would wait for this train if you were on
              the bus above. The empty clock keeps the figure in line with it. -->
-        <span v-else-if="item.waitFromEarlierBus !== undefined" class="arrival waiting">
+        <span v-else-if="item.earlierBus" class="arrival waiting">
           <span class="clock"></span>
-          <i>+{{ item.waitFromEarlierBus }}</i>
+          <i>+{{ item.earlierBus.wait }}</i>
         </span>
       </template>
 
@@ -125,19 +127,22 @@ import S8Logo from '../components/lines/S8Logo.vue'
 import { e8DayType } from '@/data/calendar'
 import { COMFORTABLE_MINUTES, pairE8WithTrains, type ConnectionRow } from '@/utils/connection'
 import { calendarDisagreesWithFgc, e8ScheduleNotice, e8TripsFor } from '@/utils/e8'
-import { toTimeString } from '@/utils/timetable'
+import { toMinutes, toTimeString } from '@/utils/timetable'
 import { renderScheduledDepartureTime } from '@/utils/utils'
 
 const sortBy = 'departure_time'
 const sortType: SortType = 'asc'
 
+// Two symmetric halves, bus then train: time left to catch it, where it leaves,
+// where it gets you. The repeated names are the point — the first QC is when the
+// bus arrives there, the second is when the train leaves.
 const headers: Header[] = [
-  { text: 'e8 left', value: 'e8Countdown', width: 76 },
-  { text: 'e8 FM', value: 'e8Departure' },
-  { text: 'e8 QC', value: 'e8Arrival' },
-  { text: 'Train', value: 'departure_time', sortable: false },
+  { text: 'Left', value: 'e8Countdown', width: 66 },
+  { text: 'FM', value: 'e8Departure' },
+  { text: 'QC', value: 'e8Arrival', width: 62 },
+  { text: 'QC', value: 'departure_time', sortable: false },
   { text: 'Line', value: 'route_short_name' },
-  { text: 'Left', value: 'left_str', width: 84 }
+  { text: 'Left', value: 'left_str', width: 66 }
 ]
 
 const toClock = (minutes: number) => toTimeString(minutes).slice(0, 5)
@@ -162,15 +167,39 @@ const connections = computed(() =>
 
 const calendarStale = computed(() => calendarDisagreesWithFgc(scheduleStore.dayType))
 
-// Counted in buses, not trains: on a bus that has already left, what you need is
-// the trains waiting at Quatre Camins, and trains are the more frequent of the two.
+/**
+ * A row is spent once its bus has gone, not once its train has. A train you can
+ * no longer reach from Francesc Macia is no use here however far off it is, and
+ * leaving those at the top pushed the first one you could actually take several
+ * rows down the table.
+ *
+ * The grace is the ride itself: a bus that left within the last half hour may
+ * still be carrying you, so its train stays on screen.
+ */
+const BUS_GRACE_MINUTES = 30
+
+/**
+ * When this row stopped being reachable from Francesc Macia.
+ *
+ * A train with no bus of its own is reached on the previous one, so it lives and
+ * dies with it — otherwise the wait rows stay bright between dimmed buses they
+ * are measured from.
+ */
+const lastChance = (row: ConnectionRow) =>
+  row.e8?.departure ?? row.earlierBus?.departure ?? toMinutes(row.departure_time)
+
+/** Past catching, so it reads as gone even while its train is still to come. */
+const isPassed = (row: ConnectionRow) => lastChance(row) < toMinutes(scheduleStore.time)
+
+/** Past catching by long enough that the bus cannot still be carrying you. */
+const isStale = (row: ConnectionRow) =>
+  lastChance(row) < toMinutes(scheduleStore.time) - BUS_GRACE_MINUTES
+
 const { rows, showEarlier, hiddenEarlierCount, hasDeparted, isRecentlyDeparted, rowClass } =
   useScheduleTable(
     connections,
     computed(() => scheduleStore.time),
-    {
-      anchor: (row) => row.e8 !== undefined
-    }
+    { stale: isStale, passed: isPassed }
   )
 
 onMounted(() => {

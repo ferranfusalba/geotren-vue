@@ -90,8 +90,11 @@
   // The e8 connection columns. A bus you would have to run for reads differently
   // from one you can walk off, and a school-term-only run is marked as such.
   &.connection-table {
-    --easy-table-body-item-padding: 6px 6px;
-    --easy-table-header-item-padding: 10px 6px;
+    // Six columns have to fit a phone without scrolling sideways; the tighter
+    // gutters are what buy the room. The frame stays as the other departures
+    // tables have it, so every view lines up down the same margins.
+    --easy-table-body-item-padding: 6px 4px;
+    --easy-table-header-item-padding: 10px 4px;
 
     .tight {
       color: #ffb38a;
@@ -99,12 +102,26 @@
     .roomy {
       color: inherit;
     }
-    // Bled out to the cell edges so the three e8 columns read as one band.
-    .e8-cell {
-      display: block;
-      margin: -6px;
-      padding: 6px;
+    // The three e8 columns tint the whole cell, so those cells give up their own
+    // padding and the content takes it over. Bleeding out with a negative margin
+    // instead would leave the band short of the row's full height.
+    tbody tr:not(.earlier-row) td:nth-child(-n + 3) {
+      padding: 0;
     }
+
+    .e8-cell,
+    .arrival {
+      display: flex;
+      align-items: center;
+      min-height: var(--easy-table-body-row-height);
+      padding: 6px 4px;
+    }
+    // Six columns is tight, and the roundel is the one thing that can give
+    // without losing information.
+    .line-logo {
+      height: 16px;
+    }
+
     .e8-cell.molins {
       background-color: #6b4a2f;
     }
@@ -112,12 +129,10 @@
     // Arrival and wait share a layout so the figures line up down the column,
     // whether or not the row has a bus of its own.
     .arrival {
-      display: flex;
-      align-items: baseline;
       gap: 4px;
 
       .clock {
-        min-width: 37px;
+        min-width: 34px;
       }
 
       // Every slack figure reads the same, whether it sits beside an arrival

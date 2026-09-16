@@ -22,11 +22,14 @@ export interface E8Connection {
 export interface ConnectionRow extends MergedScheduleRow {
   e8?: E8Connection
   /**
-   * For a train with no bus of its own: the wait at Quatre Camins if you were on
-   * the last bus that did pair, so a missed tight connection still shows what it
-   * would cost you.
+   * For a train with no bus of its own: the bus you would already be riding, and
+   * the wait at Quatre Camins once it drops you. A missed tight connection still
+   * shows what taking the next train would cost you.
+   *
+   * The bus is carried, not just the wait, because the row shares that bus's
+   * fate: once it is too late to board, this train is out of reach as well.
    */
-  waitFromEarlierBus?: number
+  earlierBus?: { departure: number; wait: number }
 }
 
 const stopIndex = (stop: (typeof E8_STOPS)[number]) => E8_STOPS.indexOf(stop)
@@ -80,14 +83,20 @@ export const pairE8WithTrains = (trips: E8Trip[], trains: MergedScheduleRow[]): 
     })
   }
 
-  let lastArrival: number | null = null
+  let previous: E8Connection | null = null
   return ordered.map((train, index) => {
     const e8 = claimed.get(index)
     if (e8) {
-      lastArrival = e8.arrival
+      previous = e8
       return { ...train, e8 }
     }
-    if (lastArrival === null) return { ...train }
-    return { ...train, waitFromEarlierBus: toMinutes(train.departure_time) - lastArrival }
+    if (previous === null) return { ...train }
+    return {
+      ...train,
+      earlierBus: {
+        departure: previous.departure,
+        wait: toMinutes(train.departure_time) - previous.arrival
+      }
+    }
   })
 }

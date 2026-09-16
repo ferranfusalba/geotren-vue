@@ -16,48 +16,57 @@ const day = Array.from({ length: 12 }, (_, i) => row(`${String(5 + i).padStart(2
 const setup = (
   rows: MergedScheduleRow[],
   now: string,
-  anchor?: (row: MergedScheduleRow) => boolean
-) => useScheduleTable(ref(rows), ref(now), anchor ? { anchor } : {})
+  stale?: (row: MergedScheduleRow) => boolean
+) => useScheduleTable(ref(rows), ref(now), stale ? { stale } : {})
 
 const times = (rows: MergedScheduleRow[]) => rows.map((r) => r.departure_time)
 
-describe('useScheduleTable look-back anchored on another row', () => {
-  // The connection view counts in buses, not trains. Every third row here
-  // carries one — 05:00, 08:00, 11:00, 14:00 — so three buses reach back nine
-  // rows rather than three.
+describe('useScheduleTable with its own idea of what is spent', () => {
+  // The connection view decides on the bus, not the train. Standing in for that
+  // here: everything before 10:00 is spent, whatever the row's own time says.
   //
   // Matched on the row's own fields: the rows arrive as reactive proxies, so an
   // identity check against the source array would never hold.
-  const hasBus = (row: MergedScheduleRow) => Number(row.departure_time.slice(0, 2)) % 3 === 2
+  const spentBefore10 = (row: MergedScheduleRow) => row.departure_time < '10:00:00'
 
-  it('reaches back far enough to cover the last few anchors', () => {
-    const { rows, hiddenEarlierCount } = setup(day, '14:30:00', hasBus)
+  it('opens at the first row still worth offering', () => {
+    const { rows, hiddenEarlierCount } = setup(day, '14:30:00', spentBefore10)
 
-    // 05:00-14:00 have gone. The anchors among them are 05:00, 08:00, 11:00 and
-    // 14:00, so the window opens at 08:00 and keeps everything after it.
-    expect(times(rows.value)[0]).toBe('08:00:00')
-    expect(hiddenEarlierCount.value).toBe(3)
+    expect(times(rows.value)[0]).toBe('10:00:00')
+    expect(hiddenEarlierCount.value).toBe(5)
   })
 
-  it('keeps the rows between the anchors, not just the anchors', () => {
-    const { rows } = setup(day, '14:30:00', hasBus)
+  it('keeps a spent row on screen when the default rule would not', () => {
+    // 10:00 to 14:00 have departed but are not spent, so they stay — which is
+    // the point: a bus that has left may still be carrying you.
+    const { rows } = setup(day, '14:30:00', spentBefore10)
 
-    expect(times(rows.value).slice(0, 4)).toEqual(['08:00:00', '09:00:00', '10:00:00', '11:00:00'])
-  })
-
-  it('falls back to counting rows before the first anchor has gone', () => {
-    // Nothing departed carries a bus yet, so it behaves like the other views.
-    const { rows } = setup(day, '07:30:00', () => false)
-
-    expect(times(rows.value).slice(0, RECENTLY_DEPARTED)).toEqual([
-      '05:00:00',
-      '06:00:00',
-      '07:00:00'
+    expect(times(rows.value).slice(0, 5)).toEqual([
+      '10:00:00',
+      '11:00:00',
+      '12:00:00',
+      '13:00:00',
+      '14:00:00'
     ])
   })
 
+  it('hides a row that has not departed yet once it is spent', () => {
+    // The train is still to come, but its bus has gone: no use either way.
+    const spent = (row: MergedScheduleRow) => row.departure_time < '12:00:00'
+    const { rows } = setup(day, '09:00:00', spent)
+
+    expect(times(rows.value)[0]).toBe('12:00:00')
+  })
+
+  it('shows nothing behind the button when every row is still good', () => {
+    const { rows, hiddenEarlierCount } = setup(day, '14:30:00', () => false)
+
+    expect(hiddenEarlierCount.value).toBe(0)
+    expect(rows.value).toHaveLength(day.length)
+  })
+
   it('still adds up to the whole day once expanded', () => {
-    const { rows, hiddenEarlierCount, showEarlier } = setup(day, '14:30:00', hasBus)
+    const { rows, hiddenEarlierCount, showEarlier } = setup(day, '14:30:00', spentBefore10)
     const shown = rows.value.length
 
     showEarlier.value = true
@@ -136,6 +145,18 @@ describe('useScheduleTable', () => {
     // Expanding the table must not start timers on the older rows.
     showEarlier.value = true
     expect(isRecentlyDeparted(row('06:00:00'))).toBe(false)
+  })
+
+  it('can be told to paint a row gone on something other than its own time', () => {
+    // The connection view dims a row once its bus has left, even though the
+    // train is still to come — it is past catching either way.
+    const { rowClass } = useScheduleTable(ref(day), ref('09:00:00'), {
+      passed: (r) => r.departure_time <= '11:00:00'
+    })
+
+    expect(rowClass(row('10:00:00'))).toBe('row-departed')
+    expect(rowClass(row('11:00:00'))).toBe('row-departed')
+    expect(rowClass(row('12:00:00'))).toBe('')
   })
 
   it('marks departed and recovered rows so the table can paint them', () => {
