@@ -6,15 +6,21 @@
  * detectDayType scores it against the three printed patterns. The e8 has no API at
  * all, so which of its four timetables applies can only come from a calendar.
  *
- * Easter is computed rather than listed, so the two movable holidays never go
- * stale. What does need review each year is FIXED_HOLIDAYS (for local holidays)
- * and SCHOOL_TERMS.
+ * Sources:
+ *  - Holidays: https://ajuntament.barcelona.cat/calendarifestius/ca/
+ *  - School year: the Generalitat calendar, as reported by Betevé for 2026-27.
+ *
+ * The Easter-derived holidays are computed rather than listed, so they never go
+ * stale. SCHOOL_* is what needs replacing each summer.
  */
 import type { E8DayType } from '@/data/e8Timetable'
 
 /**
- * Catalan public holidays that fall on the same date every year, as MM-DD.
- * e8 runs its Sunday timetable on these, and FGC its Saturday/holiday one.
+ * Barcelona's working holidays that fall on the same date every year, as MM-DD.
+ *
+ * The council's own list drops any that land on a Sunday in a given year, which
+ * is why it shows fourteen entries rather than this many; that distinction does
+ * not matter here, because a Sunday already runs the Sunday timetable.
  */
 const FIXED_HOLIDAYS = [
   '01-01', // Cap d'Any
@@ -23,8 +29,8 @@ const FIXED_HOLIDAYS = [
   '06-24', // Sant Joan
   '08-15', // L'Assumpció
   '09-11', // Diada Nacional de Catalunya
-  '09-24', // La Mercè (Barcelona)
-  '10-12', // Festa Nacional d'Espanya
+  '09-24', // Mare de Déu de la Mercè (local)
+  '10-12', // Dia Nacional d'Espanya
   '11-01', // Tots Sants
   '12-06', // Dia de la Constitució
   '12-08', // La Immaculada
@@ -33,17 +39,35 @@ const FIXED_HOLIDAYS = [
 ]
 
 /** The three days the e8 runs its own reduced timetable for. */
-const CHRISTMAS_DATES = ['12-25', '12-26', '01-01']
+const CHRISTMAS_DATES = [
+  '12-25', // Nadal
+  '12-26', // Sant Esteve
+  '01-01' //  Cap d'any
+]
 
 /**
- * Barcelona school-calendar terms. Only the fourteen "dies lectius" expeditions
- * depend on these; everything else runs regardless.
+ * The 2026-27 school year. Only the fourteen "dies lectius" expeditions depend on
+ * any of this; everything else runs regardless.
  *
- * REVIEW EACH SUMMER when the Generalitat publishes the new calendar.
+ * REPLACE EACH SUMMER. Betevé flagged these as provisional pending the
+ * Departament d'Educació's official calendar, so they are worth re-checking.
  */
-export const SCHOOL_TERMS: { from: string; to: string }[] = [
-  { from: '2026-09-07', to: '2026-12-21' },
-  { from: '2027-01-08', to: '2027-06-18' }
+export const SCHOOL_TERMS = [
+  { from: '2026-09-08', to: '2026-12-21' },
+  { from: '2027-01-08', to: '2027-06-21' }
+]
+
+/** Breaks that fall inside a term. Christmas is already a gap between terms. */
+export const SCHOOL_BREAKS = [
+  { from: '2027-03-20', to: '2027-03-29' } // Setmana Santa
+]
+
+/** Barcelona's days of free disposal — term time, but no school. */
+export const SCHOOL_FREE_DAYS = [
+  '2026-10-30', // La Castanyada
+  '2026-12-07', // pont de la Immaculada
+  '2027-02-08', // Carnaval
+  '2027-05-14' // Segona Pasqua
 ]
 
 /** The anonymous Gregorian algorithm; returns Easter Sunday for a given year. */
@@ -73,24 +97,43 @@ const iso = (date: Date) =>
 const shift = (date: Date, days: number) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate() + days)
 
-/** Divendres Sant and Dilluns de Pasqua, derived rather than listed. */
+/**
+ * The three holidays that hang off Easter: Divendres Sant, Dilluns de Pasqua
+ * Florida, and Dilluns de Pasqua Granada, which is a Barcelona local holiday and
+ * moves with the rest — 25 May in 2026, 17 May in 2027.
+ */
 const easterHolidays = (year: number) => {
   const easter = easterSunday(year)
-  return [iso(shift(easter, -2)), iso(shift(easter, 1))]
+  return [iso(shift(easter, -2)), iso(shift(easter, 1)), iso(shift(easter, 50))]
 }
+
+const within = (day: string, ranges: { from: string; to: string }[]) =>
+  ranges.some((range) => day >= range.from && day <= range.to)
 
 export const isHoliday = (date: Date) =>
   FIXED_HOLIDAYS.includes(iso(date).slice(5)) ||
   easterHolidays(date.getFullYear()).includes(iso(date))
 
+/** One of the three days the e8 runs its reduced Christmas service. */
+export const isChristmasService = (date: Date) => CHRISTMAS_DATES.includes(iso(date).slice(5))
+
+/** A day schools are actually open: in term, and not a break, free day or holiday. */
 export const isSchoolDay = (date: Date) => {
   const day = iso(date)
-  return SCHOOL_TERMS.some((term) => day >= term.from && day <= term.to)
+  const weekend = date.getDay() === 0 || date.getDay() === 6
+
+  return (
+    !weekend &&
+    !isHoliday(date) &&
+    within(day, SCHOOL_TERMS) &&
+    !within(day, SCHOOL_BREAKS) &&
+    !SCHOOL_FREE_DAYS.includes(day)
+  )
 }
 
 /** Which of the e8's four printed timetables applies on a given date. */
 export const e8DayType = (date: Date): E8DayType => {
-  if (CHRISTMAS_DATES.includes(iso(date).slice(5))) return 'christmas'
+  if (isChristmasService(date)) return 'christmas'
   if (date.getDay() === 0 || isHoliday(date)) return 'sundayHoliday'
   if (date.getDay() === 6) return 'saturday'
   return 'weekday'

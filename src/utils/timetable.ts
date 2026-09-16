@@ -1,3 +1,4 @@
+import { isHoliday } from '@/data/calendar'
 import {
   fgcTimetable,
   TIMETABLE_STATIONS,
@@ -93,7 +94,7 @@ export const detectDayType = (
   population: TripPopulation,
   today = new Date()
 ): DayType => {
-  const calendarGuess = guessDayTypeFromCalendar(today)
+  const calendarGuess = fgcDayTypeFromCalendar(today)
   if (apiTimes.length === 0) return calendarGuess
 
   let best: { dayType: DayType; score: number } | null = null
@@ -118,8 +119,14 @@ export const detectDayType = (
   return best!.dayType
 }
 
-const guessDayTypeFromCalendar = (today: Date): DayType => {
+/**
+ * The pattern a date would run, by the calendar alone.
+ *
+ * detectDayType is better whenever the API has something to say, since it reads
+ * the service actually running; this is only the tie-break.
+ */
+const fgcDayTypeFromCalendar = (today: Date): DayType => {
   const day = today.getDay()
-  if (day === 0 || day === 6) return 'saturdayHoliday'
+  if (day === 0 || day === 6 || isHoliday(today)) return 'saturdayHoliday'
   return today.getMonth() === 7 ? 'augustWeekday' : 'weekday'
 }
