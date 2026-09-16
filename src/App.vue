@@ -11,7 +11,7 @@
         <RouterLink to="/mc" :class="{ active: route.path === '/mc' }">MC</RouterLink>
       </div>
       <div>
-        <RouterLink to="/qc" :class="{ active: route.path === '/qc' }">QC</RouterLink>
+        <RouterLink to="/fm" :class="{ active: route.path === '/fm' }">FM</RouterLink>
       </div>
       <div>
         <RouterLink to="/pe" :class="{ active: route.path === '/pe' }">PE</RouterLink>

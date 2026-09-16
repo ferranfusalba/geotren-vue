@@ -53,9 +53,11 @@ const CHECKS = [
       '&exclude=route_short_name%3AL8&exclude=route_short_name%3AS3&exclude=route_short_name%3AS9'
   },
   {
-    name: 'QC outbound (not wired up yet)',
-    population: { station: 'QC', direction: 'outbound', calling: ['QC'] },
-    query: 'refine=parent_station%3AQC&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya'
+    name: 'QC -> MC',
+    population: POPULATIONS.QC_TO_MC,
+    query: 'refine=parent_station%3AQC&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya',
+    // The view drops these too: they terminate at Quatre Camins and never reach MC.
+    dropHeadsign: 'Quatre Camins'
   }
 ]
 
@@ -64,7 +66,10 @@ const run = async () => {
   let worst = 0
 
   for (const check of CHECKS) {
-    const rows = await fetchAll(check.query)
+    const all = await fetchAll(check.query)
+    const rows = check.dropHeadsign
+      ? all.filter((row) => row.trip_headsign !== check.dropHeadsign)
+      : all
     const apiTimes = rows.map((row) => minutesOf(row.departure_time)).sort((a, b) => a - b)
 
     // Exactly what the app does to pick today's timetable.
