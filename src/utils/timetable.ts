@@ -53,7 +53,11 @@ export const POPULATIONS = {
     direction: 'outbound',
     calling: ['PE'],
     excludingLines: ['L8', 'S3', 'S9']
-  }
+  },
+  // parent_station=QC, headsign != Pl. Espanya. Narrowed further to trains that
+  // reach Martorell Central, since this view exists to get you there: three
+  // trains a day terminate at Quatre Camins and are no use.
+  QC_TO_MC: { station: 'QC', direction: 'outbound', calling: ['QC', 'MC'] }
 } satisfies Record<string, TripPopulation>
 
 /**
@@ -74,7 +78,8 @@ export const tripsFor = (dayType: DayType, population: TripPopulation) => {
 }
 
 /** A trip's own departure minute at one station. Callers filter with tripsFor first. */
-export const departureAt = (trip: TimetableTrip, station: string) => trip.stops[stationIndex(station)]
+export const departureAt = (trip: TimetableTrip, station: string) =>
+  trip.stops[stationIndex(station)]
 
 /**
  * Picks the timetable that matches the day the API is actually reporting.
@@ -106,8 +111,7 @@ export const detectDayType = (
 
     // Normalising by both sides stops a pattern from winning just by being bigger.
     const score = matched / Math.max(apiTimes.length, printed.length, 1)
-    const wins =
-      !best || score > best.score || (score === best.score && dayType === calendarGuess)
+    const wins = !best || score > best.score || (score === best.score && dayType === calendarGuess)
     if (wins) best = { dayType, score }
   }
 

@@ -13,9 +13,59 @@ const row = (departure_time: string, source: 'api' | 'timetable' = 'api'): Merge
 /** A day of departures every hour from 05:00, so "now" can sit anywhere in it. */
 const day = Array.from({ length: 12 }, (_, i) => row(`${String(5 + i).padStart(2, '0')}:00:00`))
 
-const setup = (rows: MergedScheduleRow[], now: string) => useScheduleTable(ref(rows), ref(now))
+const setup = (
+  rows: MergedScheduleRow[],
+  now: string,
+  anchor?: (row: MergedScheduleRow) => boolean
+) => useScheduleTable(ref(rows), ref(now), anchor ? { anchor } : {})
 
 const times = (rows: MergedScheduleRow[]) => rows.map((r) => r.departure_time)
+
+describe('useScheduleTable look-back anchored on another row', () => {
+  // The connection view counts in buses, not trains. Every third row here
+  // carries one — 05:00, 08:00, 11:00, 14:00 — so three buses reach back nine
+  // rows rather than three.
+  //
+  // Matched on the row's own fields: the rows arrive as reactive proxies, so an
+  // identity check against the source array would never hold.
+  const hasBus = (row: MergedScheduleRow) => Number(row.departure_time.slice(0, 2)) % 3 === 2
+
+  it('reaches back far enough to cover the last few anchors', () => {
+    const { rows, hiddenEarlierCount } = setup(day, '14:30:00', hasBus)
+
+    // 05:00-14:00 have gone. The anchors among them are 05:00, 08:00, 11:00 and
+    // 14:00, so the window opens at 08:00 and keeps everything after it.
+    expect(times(rows.value)[0]).toBe('08:00:00')
+    expect(hiddenEarlierCount.value).toBe(3)
+  })
+
+  it('keeps the rows between the anchors, not just the anchors', () => {
+    const { rows } = setup(day, '14:30:00', hasBus)
+
+    expect(times(rows.value).slice(0, 4)).toEqual(['08:00:00', '09:00:00', '10:00:00', '11:00:00'])
+  })
+
+  it('falls back to counting rows before the first anchor has gone', () => {
+    // Nothing departed carries a bus yet, so it behaves like the other views.
+    const { rows } = setup(day, '07:30:00', () => false)
+
+    expect(times(rows.value).slice(0, RECENTLY_DEPARTED)).toEqual([
+      '05:00:00',
+      '06:00:00',
+      '07:00:00'
+    ])
+  })
+
+  it('still adds up to the whole day once expanded', () => {
+    const { rows, hiddenEarlierCount, showEarlier } = setup(day, '14:30:00', hasBus)
+    const shown = rows.value.length
+
+    showEarlier.value = true
+
+    expect(rows.value).toHaveLength(shown + hiddenEarlierCount.value)
+    expect(rows.value).toHaveLength(day.length)
+  })
+})
 
 describe('useScheduleTable', () => {
   it('keeps the last few departures on screen without being asked', () => {

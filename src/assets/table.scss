@@ -87,6 +87,55 @@
     font-weight: 700;
   }
 
+  // The e8 connection columns. A bus you would have to run for reads differently
+  // from one you can walk off, and a school-term-only run is marked as such.
+  &.connection-table {
+    --easy-table-body-item-padding: 6px 6px;
+    --easy-table-header-item-padding: 10px 6px;
+
+    .tight {
+      color: #ffb38a;
+    }
+    .roomy {
+      color: inherit;
+    }
+    // Bled out to the cell edges so the three e8 columns read as one band.
+    .e8-cell {
+      display: block;
+      margin: -6px;
+      padding: 6px;
+    }
+    .e8-cell.molins {
+      background-color: #6b4a2f;
+    }
+
+    // Arrival and wait share a layout so the figures line up down the column,
+    // whether or not the row has a bus of its own.
+    .arrival {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+
+      .clock {
+        min-width: 37px;
+      }
+
+      // Every slack figure reads the same, whether it sits beside an arrival
+      // time or stands alone on a train with no bus. Stated outright rather than
+      // inherited at some opacity: the rows alternate both text and background
+      // colour, so anything relative comes out different row to row.
+      i {
+        font-size: 12px;
+        color: #949ab9;
+      }
+    }
+    // ...except on a connection you would have to run for, where the figure is
+    // part of the warning.
+    .arrival.tight i {
+      color: inherit;
+    }
+  }
+
   // First row of the table: reveals the trains that have already gone.
   tbody > tr.earlier-row > td {
     padding: 0;

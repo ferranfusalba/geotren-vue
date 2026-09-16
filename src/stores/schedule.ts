@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import type { DayType } from '@/data/fgcTimetable'
 import type { Fields, MergedScheduleRow } from '@/types/schedule'
 import { crossCheckSchedule } from '@/utils/crosscheck'
 import { detectDayType, POPULATIONS, toMinutes, tripsFor } from '@/utils/timetable'
@@ -30,16 +31,18 @@ const fetchAllPages = async (url: string): Promise<Fields[]> => {
 export const useScheduleStore = defineStore('schedule', {
   state: () => ({
     time: '',
+    /** The pattern the API's own data matched today; the e8 calendar is checked against it. */
+    dayType: 'weekday' as DayType,
     scheduleMC: [] as MergedScheduleRow[],
-    scheduleQCTimeFiltered: [] as Fields[],
+    scheduleQC: [] as MergedScheduleRow[],
     schedulePE: [] as MergedScheduleRow[]
   }),
   getters: {
     getScheduleMC(state) {
       return state.scheduleMC
     },
-    getScheduleQCTimeFiltered(state) {
-      return state.scheduleQCTimeFiltered
+    getScheduleQC(state) {
+      return state.scheduleQC
     },
     getSchedulePE(state) {
       return state.schedulePE
@@ -68,19 +71,21 @@ export const useScheduleStore = defineStore('schedule', {
     },
     async fetchScheduleQC() {
       try {
-        const data = await axios.get(
-          'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?limit=100&refine=parent_station%3AQC&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya'
+        const dataResults = await fetchAllPages(
+          'https://dadesobertes.fgc.cat/api/explore/v2.1/catalog/datasets/viajes-de-hoy/records?refine=parent_station%3AQC&exclude=trip_headsign%3ABarcelona%20-%20Pla%C3%A7a%20Espanya'
         )
 
-        const dataResults = data.data.results
+        // Narrowed to trains that go on to Martorell Central; the three that
+        // terminate at Quatre Camins are dropped rather than flagged as missing.
+        const apiTimes = dataResults.map((x) => toMinutes(x.departure_time))
+        this.dayType = detectDayType(apiTimes, POPULATIONS.QC_TO_MC)
+        const trips = tripsFor(this.dayType, POPULATIONS.QC_TO_MC)
 
-        this.scheduleQCTimeFiltered = dataResults
-          .map((x: Fields) => {
-            if ((x['departure_time'] as string) >= this.time) {
-              return x
-            }
-          })
-          .filter((notUndefined: Fields) => notUndefined !== undefined)
+        this.scheduleQC = crossCheckSchedule(
+          dataResults.filter((x) => x.trip_headsign !== 'Quatre Camins'),
+          trips,
+          POPULATIONS.QC_TO_MC.station
+        )
       } catch (error) {
         alert(error)
         console.log(error)
@@ -115,7 +120,7 @@ export const useScheduleStore = defineStore('schedule', {
     cleanScheduledStore() {
       this.time = ''
       this.scheduleMC = []
-      this.scheduleQCTimeFiltered = []
+      this.scheduleQC = []
       this.schedulePE = []
     },
     cleanScheduledStoreMC() {
@@ -124,7 +129,7 @@ export const useScheduleStore = defineStore('schedule', {
     },
     cleanScheduledStoreQC() {
       this.time = ''
-      this.scheduleQCTimeFiltered = []
+      this.scheduleQC = []
     },
     cleanScheduledStorePE() {
       this.time = ''

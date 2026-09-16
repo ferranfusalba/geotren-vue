@@ -15,9 +15,9 @@ const router = createRouter({
       component: () => import('../views/MCView.vue')
     },
     {
-      path: '/qc',
-      name: 'qc',
-      component: () => import('../views/QCView.vue')
+      path: '/fm',
+      name: 'fm',
+      component: () => import('../views/FMView.vue')
     },
     {
       path: '/pe',
