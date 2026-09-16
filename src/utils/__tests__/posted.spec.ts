@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
+import { pairE8WithTrains, pairTrainsWithE8 } from '@/utils/connection'
+import { e8TripsFor } from '@/utils/e8'
 import { postedRows, tomorrow } from '@/utils/posted'
-import { POPULATIONS, tripsFor } from '@/utils/timetable'
+import { departureAt, POPULATIONS, toClock, tripsFor } from '@/utils/timetable'
 
 describe('tomorrow', () => {
   it('rolls over into the next day at midnight', () => {
@@ -39,5 +41,50 @@ describe('postedRows', () => {
 
   it('carries the trip through, so a view can read its other stops', () => {
     expect(postedRows(friday, POPULATIONS.MC).every((row) => row.trip)).toBe(true)
+  })
+})
+
+describe('postedRows as the connection views read it', () => {
+  const saturday = new Date(2026, 8, 19)
+
+  it('carries a QC time on every row, which is what the pairing needs', () => {
+    for (const population of [POPULATIONS.QC_TO_MC, POPULATIONS.MC_TO_QC]) {
+      const rows = postedRows(saturday, population)
+      expect(rows.length).toBeGreaterThan(0)
+      for (const row of rows) expect(departureAt(row.trip!, 'QC')).not.toBeNull()
+    }
+  })
+
+  it('pairs with the buses of the same day in both directions', () => {
+    const inbound = pairE8WithTrains(
+      e8TripsFor('fromBarcelona', saturday),
+      postedRows(saturday, POPULATIONS.QC_TO_MC)
+    )
+    const outbound = pairTrainsWithE8(
+      postedRows(saturday, POPULATIONS.MC_TO_QC),
+      e8TripsFor('toBarcelona', saturday)
+    )
+
+    // Not every train gets a bus, but a Saturday's worth of buses must land.
+    expect(inbound.filter((row) => row.e8).length).toBeGreaterThan(20)
+    expect(outbound.filter((row) => row.bus).length).toBeGreaterThan(20)
+
+    // And a bus that has not left yet cannot be matched to a train already gone.
+    for (const row of inbound) {
+      if (row.e8) expect(row.e8.slack).toBeGreaterThanOrEqual(2)
+    }
+    for (const row of outbound) {
+      if (row.bus) expect(row.bus.slack).toBeGreaterThanOrEqual(2)
+    }
+  })
+})
+
+describe('toClock', () => {
+  it('reads the small hours as a clock does, however far the timetable runs on', () => {
+    expect(toClock(5 * 60 + 31)).toBe('05:31')
+    expect(toClock(24 * 60 + 20)).toBe('00:20')
+    expect(toClock(25 * 60 + 19)).toBe('01:19')
+    // The e8's last Saturday arrival, which the old two-case rule printed as 27:08.
+    expect(toClock(27 * 60 + 8)).toBe('03:08')
   })
 })

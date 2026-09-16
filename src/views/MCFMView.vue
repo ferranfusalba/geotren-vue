@@ -1,11 +1,13 @@
 <template>
   <main class="table-view-layout" :class="{ 'with-schedule-type': scheduleNotice }">
-    <p v-if="calendarStale" class="calendar-warning">
+    <p v-if="isToday && calendarStale" class="calendar-warning">
       The calendar says today is
       {{ e8DayType(new Date()) === 'weekday' ? 'an ordinary weekday' : 'a holiday' }}, but FGC is
       running its {{ scheduleStore.dayType === 'saturdayHoliday' ? 'holiday' : 'weekday' }}
       service. The bus times below may be wrong — check src/data/calendar.ts.
     </p>
+
+    <DaySelector v-model="day" />
 
     <EasyDataTable
       :headers="headers"
@@ -72,6 +74,19 @@
           {{ toClock(item.bus.departure) }}
         </span>
       </template>
+      <!-- Part of the same bus band as the QC departure, so the Molins tint runs
+           through the whole ride rather than just its first cell. -->
+      <template #item-busArrival="item">
+        <span v-if="item.bus" class="e8-cell" :class="{ molins: item.bus.viaMolins }">
+          {{ toClock(item.bus.arrival) }}
+        </span>
+      </template>
+      <template #item-busDuration="item">
+        <!-- The minute mark hugs the figure, so no whitespace around it. -->
+        <span v-if="item.bus" class="e8-cell" :class="{ molins: item.bus.viaMolins }"
+          >{{ item.bus.arrival - item.bus.departure }}'</span
+        >
+      </template>
       <template #item-busCountdown="item">
         <span v-if="item.bus" class="e8-cell" :class="{ molins: item.bus.viaMolins }">
           <CountdownCell
@@ -99,6 +114,7 @@ import type { Header, SortType } from 'vue3-easy-data-table'
 // Composables
 import { useScheduleTable } from '@/composables/useScheduleTable'
 // Components
+import DaySelector from '../components/DaySelector.vue'
 import CountdownCell from '../components/countdown/CountdownCell.vue'
 import ElapsedCell from '../components/countdown/ElapsedCell.vue'
 // Assets
@@ -114,14 +130,15 @@ import S8Logo from '../components/lines/S8Logo.vue'
 import { e8DayType } from '@/data/calendar'
 import { COMFORTABLE_MINUTES, pairTrainsWithE8, type OnwardRow } from '@/utils/connection'
 import { calendarDisagreesWithFgc, e8ScheduleNotice, e8TripsFor } from '@/utils/e8'
-import { toMinutes, toTimeString } from '@/utils/timetable'
+import { postedRows, tomorrow } from '@/utils/posted'
+import { POPULATIONS, toClock, toMinutes, toTimeString } from '@/utils/timetable'
 import { renderScheduledDepartureTime } from '@/utils/utils'
 
 const sortBy = 'departure_time'
 const sortType: SortType = 'asc'
 
 // The mirror of the inbound view: train first, then the bus it hands you to.
-const headers: Header[] = [
+const ALL_HEADERS: Header[] = [
   { text: 'Left', value: 'left_str', width: 66 },
   { text: 'Line', value: 'route_short_name' },
   { text: 'MC', value: 'departure_time', sortable: false },
@@ -130,19 +147,62 @@ const headers: Header[] = [
   { text: 'Left', value: 'busCountdown', width: 66 }
 ]
 
-const toClock = (minutes: number) => toTimeString(minutes).slice(0, 5)
+// Neither countdown means anything on a day that has not started, and the table
+// has no room to spare for two columns of dashes.
+const COUNTDOWN_COLUMNS = ['left_str', 'busCountdown']
+
+// The room the countdowns leave on a day being planned rather than caught, spent
+// on where the bus gets you and how long it takes: the two things that matter
+// when the question is which train to aim for rather than whether to run.
+const PLANNING_HEADERS: Header[] = [
+  { text: 'FM', value: 'busArrival' },
+  { text: 'Trip', value: 'busDuration', width: 52 }
+]
 
 const scheduleStore = useScheduleStore()
 
-const scheduleNotice = computed(() => e8ScheduleNotice())
+const day = computed({
+  get: () => scheduleStore.day,
+  set: (value) => scheduleStore.setDay(value)
+})
+const isToday = computed(() => day.value === 'today')
+
+/** The day both timetables are read for. */
+const date = computed(() => (isToday.value ? new Date() : tomorrow()))
+
+const headers = computed(() =>
+  isToday.value
+    ? ALL_HEADERS
+    : [
+        ...ALL_HEADERS.filter((header) => !COUNTDOWN_COLUMNS.includes(header.value)),
+        ...PLANNING_HEADERS
+      ]
+)
+
+// Nothing has gone yet on a day that has not started, so it is clocked from
+// midnight and shows whole.
+const now = computed(() => (isToday.value ? scheduleStore.time : '00:00:00'))
+
+// Which printed bus timetable the rows came from — for whichever day is showing,
+// since tomorrow may well run a different one.
+const scheduleNotice = computed(() => e8ScheduleNotice(date.value))
+
+// FGC's own day type is read off today's live data, so it has nothing to say
+// about tomorrow's calendar.
 const calendarStale = computed(() => calendarDisagreesWithFgc(scheduleStore.dayType))
 
+// Today the feed is authoritative and the poster only backs it up; tomorrow the
+// poster is all there is.
+const trains = computed(() =>
+  isToday.value ? scheduleStore.getScheduleMCtoQC : postedRows(date.value, POPULATIONS.MC_TO_QC)
+)
+
 const connections = computed(() =>
-  pairTrainsWithE8(scheduleStore.getScheduleMCtoQC, e8TripsFor('toBarcelona'))
+  pairTrainsWithE8(trains.value, e8TripsFor('toBarcelona', date.value))
 )
 
 const hasBusGone = (row: OnwardRow) =>
-  row.bus !== undefined && toTimeString(row.bus.departure) < scheduleStore.time
+  row.bus !== undefined && toTimeString(row.bus.departure) < now.value
 
 /**
  * Here the train is the leg you have to catch, so a row is spent half an hour
@@ -151,17 +211,13 @@ const hasBusGone = (row: OnwardRow) =>
  */
 const TRAIN_GRACE_MINUTES = 30
 
-const isPassed = (row: OnwardRow) => toMinutes(row.departure_time) < toMinutes(scheduleStore.time)
+const isPassed = (row: OnwardRow) => toMinutes(row.departure_time) < toMinutes(now.value)
 
 const isStale = (row: OnwardRow) =>
-  toMinutes(row.departure_time) < toMinutes(scheduleStore.time) - TRAIN_GRACE_MINUTES
+  toMinutes(row.departure_time) < toMinutes(now.value) - TRAIN_GRACE_MINUTES
 
 const { rows, showEarlier, hiddenEarlierCount, hasDeparted, isRecentlyDeparted, rowClass } =
-  useScheduleTable(
-    connections,
-    computed(() => scheduleStore.time),
-    { stale: isStale, passed: isPassed }
-  )
+  useScheduleTable(connections, now, { stale: isStale, passed: isPassed })
 
 onMounted(() => {
   scheduleStore.fetchTime()

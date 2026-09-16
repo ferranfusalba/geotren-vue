@@ -1,23 +1,29 @@
 <template>
   <main class="table-view-layout" :class="{ 'with-schedule-type': scheduleNotice }">
-    <p v-if="calendarStale" class="calendar-warning">
+    <p v-if="isToday && calendarStale" class="calendar-warning">
       The calendar says today is
       {{ e8DayType(new Date()) === 'weekday' ? 'an ordinary weekday' : 'a holiday' }}, but FGC is
       running its {{ scheduleStore.dayType === 'saturdayHoliday' ? 'holiday' : 'weekday' }}
       service. The bus times below may be wrong — check src/data/calendar.ts.
     </p>
 
+    <!-- A live board of what is leaving QC now, so it has nothing to say about
+         tomorrow. It stays in place rather than disappearing, so the table does
+         not jump when the day is switched. -->
     <button
       class="panel-toggle refresh-real-time"
       :aria-expanded="showPanel"
+      :disabled="!isToday"
       @click="showPanel = !showPanel"
     >
       QC exits <span aria-hidden="true">{{ showPanel ? '▴' : '▾' }}</span>
     </button>
     <!-- Only mounted when opened, so the board is not fetched on every visit. -->
-    <picture v-if="showPanel">
+    <picture v-if="isToday && showPanel">
       <embed type="image/png" src="https://geotren.fgc.cat/isic/qc" width="100%" />
     </picture>
+
+    <DaySelector v-model="day" />
 
     <EasyDataTable
       :headers="headers"
@@ -91,6 +97,9 @@
         <R63Logo v-else-if="item.route_short_name === 'R63'" />
         <span v-else class="line-fallback">{{ item.route_short_name || '?' }}</span>
       </template>
+      <template #item-mcArrival="item">
+        <span v-if="arrivalAtMC(item) !== null">{{ toClock(arrivalAtMC(item)!) }}</span>
+      </template>
       <template #item-left_str="item">
         <CountdownCell
           v-if="!hasDeparted(item)"
@@ -120,6 +129,7 @@ import type { Header, SortType } from 'vue3-easy-data-table'
 // Composables
 import { useScheduleTable } from '@/composables/useScheduleTable'
 // Components
+import DaySelector from '../components/DaySelector.vue'
 import CountdownCell from '../components/countdown/CountdownCell.vue'
 import ElapsedCell from '../components/countdown/ElapsedCell.vue'
 // Assets
@@ -135,7 +145,8 @@ import S8Logo from '../components/lines/S8Logo.vue'
 import { e8DayType } from '@/data/calendar'
 import { COMFORTABLE_MINUTES, pairE8WithTrains, type ConnectionRow } from '@/utils/connection'
 import { calendarDisagreesWithFgc, e8ScheduleNotice, e8TripsFor } from '@/utils/e8'
-import { toMinutes, toTimeString } from '@/utils/timetable'
+import { postedRows, tomorrow } from '@/utils/posted'
+import { departureAt, POPULATIONS, toClock, toMinutes, toTimeString } from '@/utils/timetable'
 import { renderScheduledDepartureTime } from '@/utils/utils'
 
 const sortBy = 'departure_time'
@@ -144,7 +155,7 @@ const sortType: SortType = 'asc'
 // Two symmetric halves, bus then train: time left to catch it, where it leaves,
 // where it gets you. The repeated names are the point — the first QC is when the
 // bus arrives there, the second is when the train leaves.
-const headers: Header[] = [
+const ALL_HEADERS: Header[] = [
   { text: 'Left', value: 'e8Countdown', width: 66 },
   { text: 'FM', value: 'e8Departure' },
   { text: 'QC', value: 'e8Arrival', width: 62 },
@@ -153,11 +164,27 @@ const headers: Header[] = [
   { text: 'Left', value: 'left_str', width: 66 }
 ]
 
-const toClock = (minutes: number) => toTimeString(minutes).slice(0, 5)
+// Neither countdown means anything on a day that has not started, and the table
+// has no room to spare for two columns of dashes.
+const COUNTDOWN_COLUMNS = ['e8Countdown', 'left_str']
+
+// The room they leave on a day being planned rather than caught, spent on where
+// the train gets you: the far end of the journey, which the countdowns crowd out
+// on the day itself. How long the ride takes is not worth a column of its own —
+// it is 13 or 14 minutes, every time.
+const PLANNING_HEADERS: Header[] = [{ text: 'MC', value: 'mcArrival' }]
+
+/**
+ * When this train reaches Martorell Central, off its printed trip.
+ *
+ * Only the poster knows: the API answers for the station it was asked about, so
+ * it can say when a train leaves Quatre Camins and not when it arrives.
+ */
+const arrivalAtMC = (row: ConnectionRow) => (row.trip ? departureAt(row.trip, 'MC') : null)
 
 /** The bus can be gone while its train is still worth showing. */
 const hasBusGone = (row: ConnectionRow) =>
-  row.e8 !== undefined && toTimeString(row.e8.departure) < scheduleStore.time
+  row.e8 !== undefined && toTimeString(row.e8.departure) < now.value
 
 // The FGC board is a live image and the tallest thing on the page; folded away
 // by default so the connections are what you land on.
@@ -165,18 +192,45 @@ const showPanel = ref(false)
 
 const scheduleStore = useScheduleStore()
 
-// The bus is matched against the whole day of trains, then the table trims it,
-// so a connection does not appear or vanish depending on what is on screen.
-// Named only when it is not the ordinary school weekday, so the line appearing
-// at all is itself the signal that today runs something different.
-const scheduleNotice = computed(() => e8ScheduleNotice())
+const day = computed({
+  get: () => scheduleStore.day,
+  set: (value) => scheduleStore.setDay(value)
+})
+const isToday = computed(() => day.value === 'today')
 
-const runningToday = computed(() => e8TripsFor('fromBarcelona'))
+/** The day both timetables are read for. */
+const date = computed(() => (isToday.value ? new Date() : tomorrow()))
 
-const connections = computed(() =>
-  pairE8WithTrains(runningToday.value, scheduleStore.getScheduleQC)
+const headers = computed(() =>
+  isToday.value
+    ? ALL_HEADERS
+    : [
+        ...ALL_HEADERS.filter((header) => !COUNTDOWN_COLUMNS.includes(header.value)),
+        ...PLANNING_HEADERS
+      ]
 )
 
+// Nothing has gone yet on a day that has not started, so it is clocked from
+// midnight and shows whole.
+const now = computed(() => (isToday.value ? scheduleStore.time : '00:00:00'))
+
+// Which printed bus timetable the rows came from — for whichever day is showing,
+// since tomorrow may well run a different one. Named only when it is not the
+// ordinary school weekday, so the line appearing at all is itself the signal.
+const scheduleNotice = computed(() => e8ScheduleNotice(date.value))
+
+const running = computed(() => e8TripsFor('fromBarcelona', date.value))
+
+// Today the feed is authoritative and the poster only backs it up; tomorrow the
+// poster is all there is.
+const trains = computed(() =>
+  isToday.value ? scheduleStore.getScheduleQC : postedRows(date.value, POPULATIONS.QC_TO_MC)
+)
+
+const connections = computed(() => pairE8WithTrains(running.value, trains.value))
+
+// FGC's own day type is read off today's live data, so it has nothing to say
+// about tomorrow's calendar.
 const calendarStale = computed(() => calendarDisagreesWithFgc(scheduleStore.dayType))
 
 /**
@@ -201,18 +255,13 @@ const lastChance = (row: ConnectionRow) =>
   row.e8?.departure ?? row.earlierBus?.departure ?? toMinutes(row.departure_time)
 
 /** Past catching, so it reads as gone even while its train is still to come. */
-const isPassed = (row: ConnectionRow) => lastChance(row) < toMinutes(scheduleStore.time)
+const isPassed = (row: ConnectionRow) => lastChance(row) < toMinutes(now.value)
 
 /** Past catching by long enough that the bus cannot still be carrying you. */
-const isStale = (row: ConnectionRow) =>
-  lastChance(row) < toMinutes(scheduleStore.time) - BUS_GRACE_MINUTES
+const isStale = (row: ConnectionRow) => lastChance(row) < toMinutes(now.value) - BUS_GRACE_MINUTES
 
 const { rows, showEarlier, hiddenEarlierCount, hasDeparted, isRecentlyDeparted, rowClass } =
-  useScheduleTable(
-    connections,
-    computed(() => scheduleStore.time),
-    { stale: isStale, passed: isPassed }
-  )
+  useScheduleTable(connections, now, { stale: isStale, passed: isPassed })
 
 onMounted(() => {
   scheduleStore.fetchTime()

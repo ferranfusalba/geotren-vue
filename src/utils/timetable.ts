@@ -19,6 +19,15 @@ export const stationIndex = (station: string) =>
 /** Service-day minutes past midnight for an API "HH:MM:SS", keeping 24:xx as 1440+. */
 export const toMinutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5))
 
+/**
+ * Service-day minutes as a clock reads them: "HH:MM", wrapped past midnight.
+ *
+ * The printed timetables run the small hours on as 24:xx and beyond — the e8's
+ * last Saturday arrival is 27:08 — which is right for sorting and for matching
+ * the API, and wrong on screen next to a train column that already shows 00:31.
+ */
+export const toClock = (minutes: number) => toTimeString(minutes % (24 * 60)).slice(0, 5)
+
 /** Service-day minutes back to the "HH:MM:SS" shape the views and countdown expect. */
 export const toTimeString = (minutes: number) =>
   `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}:00`
