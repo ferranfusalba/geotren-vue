@@ -19,6 +19,9 @@
       <div>
         <RouterLink to="/pe" :class="{ active: route.path === '/pe' }">PE</RouterLink>
       </div>
+      <div>
+        <RouterLink to="/cal" :class="{ active: route.path === '/cal' }">Cal</RouterLink>
+      </div>
     </nav>
   </footer>
 </template>
@@ -41,7 +44,7 @@ footer {
   nav {
     height: 5.625rem;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     padding-bottom: 1.125rem;
     background-color: var(--color-corporative-primary);
     align-items: center;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 
-import { e8DayType, isHoliday, isSchoolDay, runsFridayEve } from '@/data/calendar'
+import { e8DayType, holidaysIn, isHoliday, isSchoolDay, runsFridayEve } from '@/data/calendar'
 import { E8_STOPS, e8Timetable } from '@/data/e8Timetable'
 import {
   calendarDisagreesWithFgc,
@@ -48,6 +48,41 @@ describe('e8DayType', () => {
   it('keeps the local holidays the council lists', () => {
     expect(isHoliday(date(2026, 9, 24))).toBe(true) // La Mercè
     expect(isHoliday(date(2026, 6, 24))).toBe(true) // Sant Joan
+  })
+})
+
+describe('holidaysIn', () => {
+  // Local, not toISOString: these are calendar dates, and UTC would shift them
+  // back a day for half the year.
+  const iso = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(
+      2,
+      '0'
+    )}`
+
+  it('lists a whole year in order, fixed and Easter-derived alike', () => {
+    const holidays = holidaysIn(2026)
+
+    expect(holidays).toHaveLength(16)
+    expect(holidays.map((h) => h.date.getTime())).toEqual(
+      [...holidays.map((h) => h.date.getTime())].sort((a, b) => a - b)
+    )
+  })
+
+  it('agrees with the rule the rest of the app decides days by', () => {
+    for (const year of [2026, 2027]) {
+      for (const holiday of holidaysIn(year)) expect(isHoliday(holiday.date)).toBe(true)
+    }
+  })
+
+  it('names them, and moves the Easter three with the year', () => {
+    const byName = (year: number, name: string) =>
+      iso(holidaysIn(year).find((h) => h.name === name)!.date)
+
+    expect(byName(2026, 'Divendres Sant')).toBe('2026-04-03')
+    expect(byName(2026, 'Dilluns de Pasqua Granada')).toBe('2026-05-25')
+    expect(byName(2027, 'Dilluns de Pasqua Granada')).toBe('2027-05-17')
+    expect(byName(2026, 'Mare de Déu de la Mercè')).toBe('2026-09-24')
   })
 })
 

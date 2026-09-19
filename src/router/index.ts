@@ -28,6 +28,11 @@ const router = createRouter({
       path: '/pe',
       name: 'pe',
       component: () => import('../views/PEView.vue')
+    },
+    {
+      path: '/cal',
+      name: 'cal',
+      component: () => import('../views/CalView.vue')
     }
   ]
 })

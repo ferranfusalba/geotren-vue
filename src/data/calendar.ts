@@ -22,20 +22,20 @@ import type { E8DayType } from '@/data/e8Timetable'
  * is why it shows fourteen entries rather than this many; that distinction does
  * not matter here, because a Sunday already runs the Sunday timetable.
  */
-const FIXED_HOLIDAYS = [
-  '01-01', // Cap d'Any
-  '01-06', // Reis
-  '05-01', // Festa del Treball
-  '06-24', // Sant Joan
-  '08-15', // L'Assumpció
-  '09-11', // Diada Nacional de Catalunya
-  '09-24', // Mare de Déu de la Mercè (local)
-  '10-12', // Dia Nacional d'Espanya
-  '11-01', // Tots Sants
-  '12-06', // Dia de la Constitució
-  '12-08', // La Immaculada
-  '12-25', // Nadal
-  '12-26' //  Sant Esteve
+const FIXED_HOLIDAYS: { day: string; name: string }[] = [
+  { day: '01-01', name: "Cap d'Any" },
+  { day: '01-06', name: 'Reis' },
+  { day: '05-01', name: 'Festa del Treball' },
+  { day: '06-24', name: 'Sant Joan' },
+  { day: '08-15', name: "L'Assumpció" },
+  { day: '09-11', name: 'Diada Nacional de Catalunya' },
+  { day: '09-24', name: 'Mare de Déu de la Mercè' },
+  { day: '10-12', name: "Dia Nacional d'Espanya" },
+  { day: '11-01', name: 'Tots Sants' },
+  { day: '12-06', name: 'Dia de la Constitució' },
+  { day: '12-08', name: 'La Immaculada' },
+  { day: '12-25', name: 'Nadal' },
+  { day: '12-26', name: 'Sant Esteve' }
 ]
 
 /** The three days the e8 runs its own reduced timetable for. */
@@ -102,17 +102,43 @@ const shift = (date: Date, days: number) =>
  * Florida, and Dilluns de Pasqua Granada, which is a Barcelona local holiday and
  * moves with the rest — 25 May in 2026, 17 May in 2027.
  */
-const easterHolidays = (year: number) => {
+const easterHolidays = (year: number): Holiday[] => {
   const easter = easterSunday(year)
-  return [iso(shift(easter, -2)), iso(shift(easter, 1)), iso(shift(easter, 50))]
+  return [
+    { date: shift(easter, -2), name: 'Divendres Sant' },
+    { date: shift(easter, 1), name: 'Dilluns de Pasqua Florida' },
+    { date: shift(easter, 50), name: 'Dilluns de Pasqua Granada' }
+  ]
 }
+
+/** One day off, by the name the council gives it. */
+export interface Holiday {
+  date: Date
+  name: string
+}
+
+/**
+ * Every holiday of a year, in order — the fixed ones and the three that move
+ * with Easter.
+ *
+ * This is the list the rest of the app decides days by, so showing it is how the
+ * hand-written calendar can be checked against the council's own.
+ */
+export const holidaysIn = (year: number): Holiday[] =>
+  [
+    ...FIXED_HOLIDAYS.map(({ day, name }) => ({
+      date: new Date(year, Number(day.slice(0, 2)) - 1, Number(day.slice(3))),
+      name
+    })),
+    ...easterHolidays(year)
+  ].sort((a, b) => a.date.getTime() - b.date.getTime())
 
 const within = (day: string, ranges: { from: string; to: string }[]) =>
   ranges.some((range) => day >= range.from && day <= range.to)
 
 export const isHoliday = (date: Date) =>
-  FIXED_HOLIDAYS.includes(iso(date).slice(5)) ||
-  easterHolidays(date.getFullYear()).includes(iso(date))
+  FIXED_HOLIDAYS.some((holiday) => holiday.day === iso(date).slice(5)) ||
+  easterHolidays(date.getFullYear()).some((holiday) => iso(holiday.date) === iso(date))
 
 /** A weekday that is not a public holiday — the poster's "feiner". */
 export const isWorkingDay = (date: Date) =>
